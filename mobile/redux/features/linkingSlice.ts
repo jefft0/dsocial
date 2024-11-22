@@ -17,6 +17,7 @@ const initialState: State = {
 export const requestLoginForGnokeyMobile = createAsyncThunk<boolean>("tx/requestLoginForGnokeyMobile", async () => {
     const url = new URL('land.gno.gnokey://tosignin');
     url.searchParams.append('callback', 'tech.berty.dsocial://signin-callback');
+    url.searchParams.append('client_name', 'dSocial');
     console.log("redirecting to: ", url);
     return await Linking.openURL(url.toString());
 })
@@ -61,6 +62,8 @@ export const makeCallTx = async (props: MakeCallTxParams, gnonative: GnoNativeAp
     const res =  await gnonative.makeCallTx(packagePath, fnc, args, gasFee, gasWanted, address)
 
     const url = new URL('land.gno.gnokey://tosign');
+    url.searchParams.append('chain_id', await gnonative.getChainID());
+    url.searchParams.append('remote', await gnonative.getRemote());
     url.searchParams.append('tx', res.txJson);
     url.searchParams.append('address', callerAddressBech32);
     url.searchParams.append('client_name', 'dSocial');
