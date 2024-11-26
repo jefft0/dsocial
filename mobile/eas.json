@@ -19,6 +19,13 @@
         "MY_ENVIRONMENT": "production"
       }
     },
+    "local-production": {
+      "env": {
+        "MY_ENVIRONMENT": "production",
+        "GOOGLESERVICES_INFO_PLIST": "./GoogleService-Info.plist",
+        "GOOGLE_SERVICES_JSON": "./google-services.json"
+      }
+    },
     "production": {
       "env": {
         "MY_ENVIRONMENT": "production"

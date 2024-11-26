@@ -4,11 +4,11 @@ export default ({ config }) => {
       ...config,
       ios: {
         ...config.ios,
-        googleServicesFile: process.env.GOOGLESERVICES_INFO_PLIST || "./GoogleService-Info.plist",
+        googleServicesFile: process.env.GOOGLESERVICES_INFO_PLIST,
       },
       android: {
         ...config.android,
-        googleServicesFile: process.env.GOOGLE_SERVICES_JSON || "./google-services.json",
+        googleServicesFile: process.env.GOOGLE_SERVICES_JSON,
       },
     };
   } else {
