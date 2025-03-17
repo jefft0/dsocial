@@ -7,8 +7,7 @@ import (
 
 	"gno.land/p/demo/avl"
 	"gno.land/p/demo/ufmt"
-	p_users "gno.land/p/demo/users"
-	"gno.land/r/demo/users"
+	"gno.land/r/sys/users"
 )
 
 //----------------------------------------
@@ -105,16 +104,16 @@ func summaryOf(str string, length int) string {
 }
 
 func displayAddressMD(addr std.Address) string {
-	user := users.GetUserByAddress(addr)
+	user := users.ResolveAddress(addr)
 	if user == nil {
-		return "[" + addr.String() + "](/r/demo/users:" + addr.String() + ")"
+		return "[" + addr.String() + "](/r/gnoland/users/v1:" + addr.String() + ")"
 	} else {
 		return "[@" + user.Name + "](/r/berty/social:" + user.Name + ")"
 	}
 }
 
 func usernameOf(addr std.Address) string {
-	user := users.GetUserByAddress(addr)
+	user := users.ResolveAddress(addr)
 	if user == nil {
 		return ""
 	} else {
@@ -124,8 +123,8 @@ func usernameOf(addr std.Address) string {
 
 // Return the User info as a JSON string.
 // (This is a temporary utility until gno.land supports returning structured data directly.)
-func marshalJsonUser(user *p_users.User) string {
+func marshalJsonUser(user *users.UserData) string {
 	return ufmt.Sprintf(
-		"{\"address\": \"%s\", \"name\": \"%s\", \"profile\": %s, \"number\": %d, \"invites\": %d, \"inviter\": \"%s\"}",
-		user.Address.String(), user.Name, strconv.Quote(user.Profile), user.Number, user.Invites, user.Inviter.String())
+		"{\"address\": \"%s\", \"name\": \"%s\", \"deleted\": %t}",
+		user.Addr().String(), user.Name(), user.IsDeleted())
 }
