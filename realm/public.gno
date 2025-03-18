@@ -20,7 +20,7 @@ type UserAndPostID struct {
 // Return the "thread ID" of the new post.
 // (This is similar to boards.CreateThread, but no message title)
 func PostMessage(body string) PostID {
-	caller := std.GetOrigCaller()
+	caller := std.OriginCaller()
 	name := usernameOf(caller)
 	if name == "" {
 		panic("please register")
@@ -38,7 +38,7 @@ func PostMessage(body string) PostID {
 // Return the new post ID.
 // (This is similar to boards.CreateReply.)
 func PostReply(userPostsAddr std.Address, threadid, postid PostID, body string) PostID {
-	caller := std.GetOrigCaller()
+	caller := std.OriginCaller()
 	if usernameOf(caller) == "" {
 		panic("please register")
 	}
@@ -68,7 +68,7 @@ func PostReply(userPostsAddr std.Address, threadid, postid PostID, body string) 
 // Return the new post ID.
 // (This is similar to boards.CreateRepost.)
 func RepostThread(userPostsAddr std.Address, threadid PostID, comment string) PostID {
-	caller := std.GetOrigCaller()
+	caller := std.OriginCaller()
 	if userPostsAddr == caller {
 		panic("Cannot repost a user's own message")
 	}
@@ -225,7 +225,7 @@ func GetJsonHomePosts(userPostsAddr std.Address, startIndex int, endIndex int) s
 
 // Update the caller to follow the user with followedAddr. See UserPosts.Follow.
 func Follow(followedAddr std.Address) PostID {
-	caller := std.GetOrigCaller()
+	caller := std.OriginCaller()
 	name := usernameOf(caller)
 	if name == "" {
 		panic("please register")
@@ -242,7 +242,7 @@ func Follow(followedAddr std.Address) PostID {
 
 // Update the caller to unfollow the user with followedAddr. See UserPosts.Unfollow.
 func Unfollow(followedAddr std.Address) {
-	caller := std.GetOrigCaller()
+	caller := std.OriginCaller()
 	name := usernameOf(caller)
 	if name == "" {
 		panic("please register")
@@ -264,7 +264,7 @@ func Unfollow(followedAddr std.Address) {
 // The caller must already be registered with /r/gnoland/users/v1 Register.
 // Return a boolean indicating whether the userAddr was added. See Post.AddReaction.
 func AddReaction(userPostsAddr std.Address, threadid, postid PostID, reaction Reaction) bool {
-	caller := std.GetOrigCaller()
+	caller := std.OriginCaller()
 	if usernameOf(caller) == "" {
 		panic("please register")
 	}
@@ -294,7 +294,7 @@ func AddReaction(userPostsAddr std.Address, threadid, postid PostID, reaction Re
 // The caller must already be registered with /r/gnoland/users/v1 Register.
 // Return a boolean indicating whether the userAddr was removed. See Post.RemoveReaction.
 func RemoveReaction(userPostsAddr std.Address, threadid, postid PostID, reaction Reaction) bool {
-	caller := std.GetOrigCaller()
+	caller := std.OriginCaller()
 	if usernameOf(caller) == "" {
 		panic("please register")
 	}
@@ -328,10 +328,10 @@ func GetJsonUserByAddress(addr std.Address) string {
 	return marshalJsonUser(user)
 }
 
-// Call users.GetUserByName and return the result as JSON, or "" if not found.
+// Call users.ResolveName and return the result as JSON, or "" if not found.
 // (This is a temporary utility until gno.land supports returning structured data directly.)
 func GetJsonUserByName(name string) string {
-	user := users.GetUserByName(name)
+	user, _ := users.ResolveName(name)
 	if user == nil {
 		return ""
 	}
