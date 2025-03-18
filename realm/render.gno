@@ -4,7 +4,7 @@ import (
 	"strconv"
 	"strings"
 
-	"gno.land/r/demo/users"
+	"gno.land/r/sys/users"
 )
 
 func Render(path string) string {
@@ -23,12 +23,12 @@ func Render(path string) string {
 	parts := strings.Split(path, "/")
 	if len(parts) == 1 {
 		// /r/berty/social:USER_NAME
-		user := users.GetUserByName(path)
+		user, _ := users.ResolveName(path)
 		if user == nil {
 			return "Unknown user: " + path
 		}
 
-		userPosts := getUserPosts(user.Address)
+		userPosts := getUserPosts(user.Addr())
 		if userPosts == nil {
 			return "No posts by: " + path
 		}
@@ -36,11 +36,11 @@ func Render(path string) string {
 		return userPosts.RenderUserPosts(false)
 	} else if len(parts) == 2 {
 		name := parts[0]
-		user := users.GetUserByName(name)
+		user, _ := users.ResolveName(name)
 		if user == nil {
 			return "Unknown user: " + name
 		}
-		userPosts := getUserPosts(user.Address)
+		userPosts := getUserPosts(user.Addr())
 		if userPosts == nil {
 			return "No posts by: " + name
 		}
@@ -69,11 +69,11 @@ func Render(path string) string {
 	} else if len(parts) == 3 {
 		// /r/berty/social:USER_NAME/THREAD_ID/REPLY_ID
 		name := parts[0]
-		user := users.GetUserByName(name)
+		user, _ := users.ResolveName(name)
 		if user == nil {
 			return "Unknown user: " + name
 		}
-		userPosts := getUserPosts(user.Address)
+		userPosts := getUserPosts(user.Addr())
 		if userPosts == nil {
 			return "No posts by: " + name
 		}

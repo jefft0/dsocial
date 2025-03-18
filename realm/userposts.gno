@@ -11,7 +11,7 @@ import (
 	"gno.land/p/demo/avl"
 	"gno.land/p/demo/ufmt"
 	"gno.land/p/moul/txlink"
-	"gno.land/r/demo/users"
+	"gno.land/r/sys/users"
 )
 
 type FollowingInfo struct {
@@ -113,10 +113,10 @@ func (userPosts *UserPosts) RenderUserPosts(includeFollowed bool) string {
 	str := ""
 	followers := strconv.Itoa(userPosts.followers.Size()) + " Followers"
 	following := "Following " + strconv.Itoa(userPosts.following.Size())
-	user := users.GetUserByAddress(userPosts.userAddr)
+	user := users.ResolveAddress(userPosts.userAddr)
 	if user != nil {
-		followers = "[" + followers + "](/r/berty/social:" + user.Name + "/followers)"
-		following = "[" + following + "](/r/berty/social:" + user.Name + "/following)"
+		followers = "[" + followers + "](/r/berty/social:" + user.Name() + "/followers)"
+		following = "[" + following + "](/r/berty/social:" + user.Name() + "/following)"
 	}
 	str += followers + " &nbsp;" + following + "\n\n"
 
@@ -143,17 +143,17 @@ func (userPosts *UserPosts) RenderUserPosts(includeFollowed bool) string {
 
 func (userPosts *UserPosts) RenderFollowers() string {
 	str := ""
-	user := users.GetUserByAddress(userPosts.userAddr)
+	user := users.ResolveAddress(userPosts.userAddr)
 	if user != nil {
-		str += "[@" + user.Name + "](/r/berty/social:" + user.Name + ") "
+		str += "[@" + user.Name() + "](/r/berty/social:" + user.Name() + ") "
 	}
 	str += "Followers\n\n"
 
 	// List the followers, sorted by name.
 	names := []string{}
 	userPosts.followers.Iterate("", "", func(key string, value interface{}) bool {
-		if user := users.GetUserByAddress(std.Address(key)); user != nil {
-			names = append(names, user.Name)
+		if user := users.ResolveAddress(std.Address(key)); user != nil {
+			names = append(names, user.Name())
 		}
 		return false
 	})
@@ -167,9 +167,9 @@ func (userPosts *UserPosts) RenderFollowers() string {
 
 func (userPosts *UserPosts) RenderFollowing() string {
 	str := ""
-	user := users.GetUserByAddress(userPosts.userAddr)
+	user := users.ResolveAddress(userPosts.userAddr)
 	if user != nil {
-		str += "[@" + user.Name + "](/r/berty/social:" + user.Name + ") "
+		str += "[@" + user.Name() + "](/r/berty/social:" + user.Name() + ") "
 	}
 	str += "Following\n\n"
 
@@ -177,8 +177,8 @@ func (userPosts *UserPosts) RenderFollowing() string {
 	nameAddrs := []string{}
 	userPosts.following.Iterate("", "", func(addr string, infoI interface{}) bool {
 		info := infoI.(*FollowingInfo)
-		if user := users.GetUserByAddress(std.Address(addr)); user != nil {
-			nameAddrs = append(nameAddrs, user.Name+"/"+addr+"/"+info.startedFollowingAt.Format("2006-01-02"))
+		if user := users.ResolveAddress(std.Address(addr)); user != nil {
+			nameAddrs = append(nameAddrs, user.Name()+"/"+addr+"/"+info.startedFollowingAt.Format("2006-01-02"))
 		}
 		return false
 	})
