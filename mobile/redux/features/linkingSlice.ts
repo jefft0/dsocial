@@ -69,6 +69,7 @@ export const makeCallTx = async (props: MakeCallTxParams, gnonative: GnoNativeAp
     url.searchParams.append('chain_id', await gnonative.getChainID());
     url.searchParams.append('remote', await gnonative.getRemote());
     url.searchParams.append('tx', res.txJson);
+    url.searchParams.append("update_tx", "true");
     url.searchParams.append('address', callerAddressBech32);
     url.searchParams.append('client_name', 'dSocial');
     url.searchParams.append('reason', reason);
