@@ -6,5 +6,14 @@
     "@semantic-release/release-notes-generator",
     "@semantic-release/npm",
     "@semantic-release/github"
-  ]
+  ],
+  "prepare": [
+        {
+            "path": "semantic-release-expo",
+            "manifests": [
+                "./mobile/app.json",
+            ]
+        }
+    ]
+  }
 }
