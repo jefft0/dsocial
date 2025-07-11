@@ -59,6 +59,7 @@
   "devDependencies": {
     "@babel/core": "^7.20.0",
     "@types/react": "~18.2.79",
+    "semantic-release-expo": "^2.2.3",
     "typescript": "~5.3.3"
   },
   "overrides": {
