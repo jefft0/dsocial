@@ -24,7 +24,7 @@ jobs:
 
       - name: Set nodejs as global exec
         run: |
-          asdf global nodejs ${{ env.node_version }}
+          asdf set -u nodejs ${{ env.node_version }}
 
       - name: Setup Expo and EAS
         uses: expo/expo-github-action@v8
