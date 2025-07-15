@@ -1,14 +1,7 @@
 {
   "branches": ["main"],
   "plugins": [
-      [
-          "semantic-release-expo",
-          {
-            "manifests": [
-                "./mobile/app.json",
-            ]
-          }
-      ],
+    "semantic-release-expo",
     "@semantic-release/commit-analyzer",
     "@semantic-release/release-notes-generator",
     "@semantic-release/npm",
