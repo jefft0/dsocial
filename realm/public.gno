@@ -19,7 +19,7 @@ type UserAndPostID struct {
 // The caller must already be registered with /r/gnoland/users/v1 Register.
 // Return the "thread ID" of the new post.
 // (This is similar to boards.CreateThread, but no message title)
-func PostMessage(body string) PostID {
+func PostMessage(_ realm, body string) PostID {
 	caller := std.OriginCaller()
 	name := usernameOf(caller)
 	if name == "" {
@@ -37,7 +37,7 @@ func PostMessage(body string) PostID {
 // The caller must already be registered with /r/gnoland/users/v1 Register.
 // Return the new post ID.
 // (This is similar to boards.CreateReply.)
-func PostReply(userPostsAddr std.Address, threadid, postid PostID, body string) PostID {
+func PostReply(_ realm, userPostsAddr std.Address, threadid, postid PostID, body string) PostID {
 	caller := std.OriginCaller()
 	if usernameOf(caller) == "" {
 		panic("please register")
@@ -67,7 +67,7 @@ func PostReply(userPostsAddr std.Address, threadid, postid PostID, body string) 
 // the original call to PostMessage. This must be a top-level thread (not a reply).
 // Return the new post ID.
 // (This is similar to boards.CreateRepost.)
-func RepostThread(userPostsAddr std.Address, threadid PostID, comment string) PostID {
+func RepostThread(_ realm, userPostsAddr std.Address, threadid PostID, comment string) PostID {
 	caller := std.OriginCaller()
 	if userPostsAddr == caller {
 		panic("Cannot repost a user's own message")
@@ -164,7 +164,7 @@ func GetThreadPosts(userPostsAddr std.Address, threadID int, replyID int, startI
 // Update the home posts by scanning all posts from all followed users and adding the
 // followed posts since the last call to RefreshHomePosts (or since started following the user).
 // Return the new count of home posts. The result is something like "(12 int)".
-func RefreshHomePosts(userPostsAddr std.Address) int {
+func RefreshHomePosts(_ realm, userPostsAddr std.Address) int {
 	userPosts := getUserPosts(userPostsAddr)
 	if userPosts == nil {
 		panic("posts for userPostsAddr do not exist")
@@ -224,7 +224,7 @@ func GetJsonHomePosts(userPostsAddr std.Address, startIndex int, endIndex int) s
 }
 
 // Update the caller to follow the user with followedAddr. See UserPosts.Follow.
-func Follow(followedAddr std.Address) PostID {
+func Follow(_ realm, followedAddr std.Address) PostID {
 	caller := std.OriginCaller()
 	name := usernameOf(caller)
 	if name == "" {
@@ -241,7 +241,7 @@ func Follow(followedAddr std.Address) PostID {
 }
 
 // Update the caller to unfollow the user with followedAddr. See UserPosts.Unfollow.
-func Unfollow(followedAddr std.Address) {
+func Unfollow(_ realm, followedAddr std.Address) {
 	caller := std.OriginCaller()
 	name := usernameOf(caller)
 	if name == "" {
@@ -263,7 +263,7 @@ func Unfollow(followedAddr std.Address) {
 // (This function's arguments are similar to PostReply.)
 // The caller must already be registered with /r/gnoland/users/v1 Register.
 // Return a boolean indicating whether the userAddr was added. See Post.AddReaction.
-func AddReaction(userPostsAddr std.Address, threadid, postid PostID, reaction Reaction) bool {
+func AddReaction(_ realm, userPostsAddr std.Address, threadid, postid PostID, reaction Reaction) bool {
 	caller := std.OriginCaller()
 	if usernameOf(caller) == "" {
 		panic("please register")
@@ -293,7 +293,7 @@ func AddReaction(userPostsAddr std.Address, threadid, postid PostID, reaction Re
 // (This function's arguments are similar to PostReply.)
 // The caller must already be registered with /r/gnoland/users/v1 Register.
 // Return a boolean indicating whether the userAddr was removed. See Post.RemoveReaction.
-func RemoveReaction(userPostsAddr std.Address, threadid, postid PostID, reaction Reaction) bool {
+func RemoveReaction(_ realm, userPostsAddr std.Address, threadid, postid PostID, reaction Reaction) bool {
 	caller := std.OriginCaller()
 	if usernameOf(caller) == "" {
 		panic("please register")
