@@ -40,7 +40,7 @@ export const followTxAndRedirectToSign = createAsyncThunk<void, { address: strin
 });
 
 export const unfollowTxAndRedirectToSign = createAsyncThunk<void, { address: string, callerAddress: Uint8Array }, ThunkExtra>("profile/follow", async ({ address, callerAddress }, thunkAPI) => {
-  console.log("Follow user: %s", address);
+  console.log("Unfollow user: %s", address);
   const gnonative = thunkAPI.extra.gnonative;
 
   const fnc = "Unfollow";
