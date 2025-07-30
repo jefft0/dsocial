@@ -4,10 +4,10 @@ import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
 import Constants from "expo-constants";
 
-import { PromiseClient } from "@connectrpc/connect";
+import { Client } from "@connectrpc/connect";
 import * as Grpc from "@gno/grpc/client";
 
-import { NotificationService } from "@buf/gnolang_dsocial-notification.connectrpc_es/notificationservice_connect";
+import { NotificationService } from "@buf/gnolang_dsocial-notification.bufbuild_es/notificationservice_pb";
 
 export interface NotificationContextProps {
   getPushToken: () => string;
@@ -26,11 +26,11 @@ interface NotificationProviderProps {
 const NotificationContext = createContext<NotificationContextProps | null>(null);
 
 const NotificationProvider: React.FC<NotificationProviderProps> = ({ config, children }) => {
-  const [clientInstance, setClientInstance] = useState<PromiseClient<typeof NotificationService> | undefined>(undefined);
+  const [clientInstance, setClientInstance] = useState<Client<typeof NotificationService> | undefined>(undefined);
   const [expoPushToken, setExpoPushToken] = useState("");
   const [notification, setNotification] = useState<Notifications.Notification | undefined>(undefined);
-  const notificationListener = useRef<Notifications.Subscription>();
-  const responseListener = useRef<Notifications.Subscription>();
+  const notificationListener = useRef<Notifications.EventSubscription>();
+  const responseListener = useRef<Notifications.EventSubscription>();
 
   useEffect(() => {
     registerForPushNotificationsAsync()
@@ -46,8 +46,8 @@ const NotificationProvider: React.FC<NotificationProviderProps> = ({ config, chi
     });
 
     return () => {
-      notificationListener.current && Notifications.removeNotificationSubscription(notificationListener.current);
-      responseListener.current && Notifications.removeNotificationSubscription(responseListener.current);
+      notificationListener.current && notificationListener.current.remove();
+      responseListener.current && responseListener.current.remove();
     };
   }, []);
 
@@ -60,7 +60,7 @@ const NotificationProvider: React.FC<NotificationProviderProps> = ({ config, chi
     })();
   }, []);
 
-  const initClient = (config: ConfigProps): PromiseClient<typeof NotificationService> => {
+  const initClient = (config: ConfigProps): Client<typeof NotificationService> => {
     if (clientInstance) {
       return clientInstance;
     }

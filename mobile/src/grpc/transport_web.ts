@@ -4,7 +4,14 @@ polyfillReadableStream();
 // @ts-ignore
 import { fetch as fetchPolyfill, Headers as HeadersPolyfill } from "react-native-fetch-api";
 
-import type { AnyMessage, MethodInfo, PartialMessage, ServiceType } from "@bufbuild/protobuf";
+import type {
+  DescMessage,
+  DescMethodUnary,
+  DescMethodStreaming,
+  MessageShape,
+  MessageInitShape,
+} from '@bufbuild/protobuf';
+import { toJsonString } from '@bufbuild/protobuf';
 import type { ContextValues, StreamResponse, Transport, UnaryRequest, UnaryResponse } from "@connectrpc/connect";
 import { createContextValues } from "@connectrpc/connect";
 import {
@@ -16,28 +23,18 @@ import {
   runUnaryCall,
 } from "@connectrpc/connect/protocol";
 import {
-  headerTimeout,
-  headerContentType,
-  contentTypeUnaryProto,
-  contentTypeUnaryJson,
-  contentTypeStreamJson,
-  headerUserAgent,
-  headerProtocolVersion,
-  protocolVersion,
-  contentTypeStreamProto,
   endStreamFlag,
   endStreamFromJson,
   validateResponse,
+  requestHeader,
 } from "@connectrpc/connect/protocol-connect";
 import {
-  requestHeader as webRequestHeader,
   trailerFlag,
   trailerParse,
   validateResponse as webValidateResponse,
   validateTrailer,
 } from "@connectrpc/connect/protocol-grpc-web";
 import { GrpcWebTransportOptions } from "@connectrpc/connect-web";
-import { Message, MethodKind } from "@bufbuild/protobuf";
 
 // Polyfill async.Iterator. For some reason, the Babel presets and plugins are not doing the trick.
 // Code from here: https://www.typescriptlang.org/docs/handbook/release-notes/typescript-2-3.html#caveats
@@ -52,6 +49,10 @@ interface FetchXHRResponse {
   headers: Headers;
   body: Uint8Array;
 }
+
+const fetchOptions: RequestInit = {
+  redirect: "error",
+};
 
 function parseHeaders(allHeaders: string): Headers {
   return allHeaders
@@ -87,13 +88,12 @@ function extractDataChunks(initialData: Uint8Array) {
 export function createXHRGrpcWebTransport(options: GrpcWebTransportOptions): Transport {
   const useBinaryFormat = options.useBinaryFormat ?? true;
   return {
-    async unary<I extends Message<I> = AnyMessage, O extends Message<O> = AnyMessage>(
-      service: ServiceType,
-      method: MethodInfo<I, O>,
+    async unary<I extends DescMessage, O extends DescMessage>(
+      method: DescMethodUnary<I, O>,
       signal: AbortSignal | undefined,
       timeoutMs: number | undefined,
       header: Headers,
-      message: PartialMessage<I>,
+      message: MessageInitShape<I>,
       contextValues?: ContextValues
     ): Promise<UnaryResponse<I, O>> {
       const { serialize, parse } = createClientMethodSerializers(
@@ -108,14 +108,11 @@ export function createXHRGrpcWebTransport(options: GrpcWebTransportOptions): Tra
         interceptors: options.interceptors,
         req: {
           stream: false,
-          service,
+          service: method.parent,
           method,
-          url: createMethodUrl(options.baseUrl, service, method),
-          init: {
-            method: "POST",
-            mode: "cors",
-          },
-          header: webRequestHeader(useBinaryFormat, timeoutMs, header, false),
+          requestMethod: 'POST',
+          url: createMethodUrl(options.baseUrl, method),
+          header: requestHeader(method.methodKind, useBinaryFormat, timeoutMs, header, false),
           contextValues: contextValues ?? createContextValues(),
           message,
         },
@@ -124,7 +121,7 @@ export function createXHRGrpcWebTransport(options: GrpcWebTransportOptions): Tra
             return new Promise((resolve, reject) => {
               const xhr = new XMLHttpRequest();
 
-              xhr.open(req.init.method ?? "POST", req.url);
+              xhr.open(req.requestMethod ?? "POST", req.url);
 
               function onAbort() {
                 xhr.abort();
@@ -166,7 +163,7 @@ export function createXHRGrpcWebTransport(options: GrpcWebTransportOptions): Tra
           const chunks = extractDataChunks(response.body);
 
           let trailer: Headers | undefined;
-          let message: O | undefined;
+          let message: MessageShape<O> | undefined;
 
           chunks.forEach(({ flags, data }) => {
             if (flags === trailerFlag) {
@@ -208,13 +205,12 @@ export function createXHRGrpcWebTransport(options: GrpcWebTransportOptions): Tra
       });
     },
 
-    async stream<I extends Message<I> = AnyMessage, O extends Message<O> = AnyMessage>(
-      service: ServiceType,
-      method: MethodInfo<I, O>,
+    async stream<I extends DescMessage, O extends DescMessage>(
+      method: DescMethodStreaming<I, O>,
       signal: AbortSignal | undefined,
       timeoutMs: number | undefined,
       header: HeadersInit | undefined,
-      input: AsyncIterable<PartialMessage<I>>,
+      input: AsyncIterable<MessageInitShape<I>>,
       contextValues?: ContextValues
     ): Promise<StreamResponse<I, O>> {
       const { serialize, parse } = createClientMethodSerializers(
@@ -255,9 +251,11 @@ export function createXHRGrpcWebTransport(options: GrpcWebTransportOptions): Tra
         }
       }
 
-      async function createRequestBody(input: AsyncIterable<I>): Promise<Uint8Array> {
-        if (method.kind != MethodKind.ServerStreaming) {
-          throw "The fetch API does not support streaming request bodies";
+      async function createRequestBody(
+        input: AsyncIterable<MessageShape<I>>,
+      ): Promise<Uint8Array> {
+        if (method.methodKind !== 'server_streaming') {
+          throw 'The fetch API does not support streaming request bodies';
         }
 
         const r = await input[Symbol.asyncIterator]().next();
@@ -268,64 +266,30 @@ export function createXHRGrpcWebTransport(options: GrpcWebTransportOptions): Tra
         return encodeEnvelope(0, serialize(r.value));
       }
 
-      function requestHeader(
-        methodKind: MethodKind,
-        useBinaryFormat: boolean,
-        timeoutMs: number | undefined,
-        userProvidedHeaders: HeadersInit | undefined,
-        setUserAgent: boolean
-      ): HeadersPolyfill {
-        const result = new HeadersPolyfill(
-          userProvidedHeaders !== null && userProvidedHeaders !== void 0 ? userProvidedHeaders : {}
-        );
-        if (timeoutMs !== undefined) {
-          result.set(headerTimeout, `${timeoutMs}`);
-        }
-        result.set(
-          headerContentType,
-          methodKind == MethodKind.Unary
-            ? useBinaryFormat
-              ? contentTypeUnaryProto
-              : contentTypeUnaryJson
-            : useBinaryFormat
-              ? contentTypeStreamProto
-              : contentTypeStreamJson
-        );
-        result.set(headerProtocolVersion, protocolVersion);
-        if (setUserAgent) {
-          result.set(headerUserAgent, "connect-es/1.4.0");
-        }
-        return result;
-      }
-
       return await runStreamingCall<I, O>({
         interceptors: options.interceptors,
         timeoutMs,
         signal,
         req: {
           stream: true,
-          service,
+          service: method.parent,
           method,
-          url: createMethodUrl(options.baseUrl, service, method),
-          init: {
-            method: "POST",
-            credentials: options.credentials ?? "same-origin",
-            mode: "cors",
-          },
-          header: requestHeader(method.kind, useBinaryFormat, timeoutMs, header, false),
+          requestMethod: 'POST',
+          url: createMethodUrl(options.baseUrl, method),
+          header: requestHeader(method.methodKind, useBinaryFormat, timeoutMs, header, false),
           contextValues: contextValues ?? createContextValues(),
           message: input,
         },
         next: async (req) => {
           const fRes = await fetchPolyfill(req.url, {
-            ...req.init,
+            ...fetchOptions,
             headers: req.header,
             signal: req.signal,
             body: await createRequestBody(req.message),
             reactNative: { textStreaming: true }, // allows streaming in the polyfill fetch function
           });
 
-          validateResponse(method.kind, fRes.status, fRes.headers);
+          validateResponse(method.methodKind, useBinaryFormat, fRes.status, fRes.headers);
           if (fRes.body === null) {
             throw "missing response body";
           }
