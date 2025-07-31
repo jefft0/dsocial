@@ -5,15 +5,20 @@ polyfillReadableStream();
 import { fetch as fetchPolyfill, Headers as HeadersPolyfill } from "react-native-fetch-api";
 
 import type {
+  BinaryReadOptions,
+  BinaryWriteOptions,
+  JsonReadOptions,
+  JsonValue,
+  JsonWriteOptions,
   DescMessage,
   DescMethodUnary,
   DescMethodStreaming,
   MessageShape,
   MessageInitShape,
 } from '@bufbuild/protobuf';
-import { toJsonString } from '@bufbuild/protobuf';
-import type { ContextValues, StreamResponse, Transport, UnaryRequest, UnaryResponse } from "@connectrpc/connect";
-import { createContextValues } from "@connectrpc/connect";
+import { fromJson } from "@bufbuild/protobuf";
+import type { Interceptor, ContextValues, StreamResponse, Transport, UnaryRequest, UnaryResponse } from "@connectrpc/connect";
+import { appendHeaders, createContextValues } from "@connectrpc/connect";
 import {
   createClientMethodSerializers,
   createEnvelopeReadableStream,
@@ -21,24 +26,81 @@ import {
   encodeEnvelope,
   runStreamingCall,
   runUnaryCall,
+  getJsonOptions,
 } from "@connectrpc/connect/protocol";
 import {
   endStreamFlag,
   endStreamFromJson,
   validateResponse,
   requestHeader,
+  transformConnectPostToGetRequest,
+  errorFromJson,
+  trailerDemux,
 } from "@connectrpc/connect/protocol-connect";
-import {
-  trailerFlag,
-  trailerParse,
-  validateResponse as webValidateResponse,
-  validateTrailer,
-} from "@connectrpc/connect/protocol-grpc-web";
-import { GrpcWebTransportOptions } from "@connectrpc/connect-web";
+import { MethodOptions_IdempotencyLevel } from "@bufbuild/protobuf/wkt";
 
 // Polyfill async.Iterator. For some reason, the Babel presets and plugins are not doing the trick.
 // Code from here: https://www.typescriptlang.org/docs/handbook/release-notes/typescript-2-3.html#caveats
 (Symbol as any).asyncIterator = Symbol.asyncIterator || Symbol.for("Symbol.asyncIterator");
+
+export interface ConnectTransportOptions {
+  /**
+   * Base URI for all HTTP requests.
+   *
+   * Requests will be made to <baseUrl>/<package>.<service>/method
+   *
+   * Example: `baseUrl: "https://example.com/my-api"`
+   *
+   * This will make a `POST /my-api/my_package.MyService/Foo` to
+   * `example.com` via HTTPS.
+   *
+   * If your API is served from the same domain as your site, use
+   * `baseUrl: window.location.origin` or simply "/".
+   */
+  baseUrl: string;
+
+  /**
+   * By default, connect-web clients use the JSON format.
+   */
+  useBinaryFormat?: boolean;
+
+  /**
+   * Interceptors that should be applied to all calls running through
+   * this transport. See the Interceptor type for details.
+   */
+  interceptors?: Interceptor[];
+
+  /**
+   * Options for the JSON format.
+   * By default, unknown fields are ignored.
+   */
+  jsonOptions?: Partial<JsonReadOptions & JsonWriteOptions>;
+
+  /**
+   * Options for the binary wire format.
+   */
+  binaryOptions?: Partial<BinaryReadOptions & BinaryWriteOptions>;
+
+  /**
+   * Optional override of the fetch implementation used by the transport.
+   *
+   * This option can be used to set fetch options such as "credentials".
+   */
+  fetch?: typeof globalThis.fetch;
+
+  /**
+   * Controls whether or not Connect GET requests should be used when
+   * available, on side-effect free methods. Defaults to false.
+   */
+  useHttpGet?: boolean;
+
+  /**
+   * The timeout in milliseconds to apply to all requests.
+   *
+   * This can be overridden on a per-request basis by passing a timeoutMs.
+   */
+  defaultTimeoutMs?: number;
+}
 
 class AbortError extends Error {
   name = "AbortError";
@@ -54,39 +116,10 @@ const fetchOptions: RequestInit = {
   redirect: "error",
 };
 
-function parseHeaders(allHeaders: string): Headers {
-  return allHeaders
-    .trim()
-    .split(/[\r\n]+/)
-    .reduce((memo, header) => {
-      const [key, value] = header.split(": ");
-      memo.append(key, value);
-      return memo;
-    }, new Headers());
-}
-
-function extractDataChunks(initialData: Uint8Array) {
-  let buffer = initialData;
-  let dataChunks: { flags: number; data: Uint8Array }[] = [];
-
-  while (buffer.byteLength >= 5) {
-    let length = 0;
-    let flags = buffer[0];
-
-    for (let i = 1; i < 5; i++) {
-      length = (length << 8) + buffer[i]; // eslint-disable-line no-bitwise
-    }
-
-    const data = buffer.subarray(5, 5 + length);
-    buffer = buffer.subarray(5 + length);
-    dataChunks.push({ flags, data });
-  }
-
-  return dataChunks;
-}
-
-export function createXHRGrpcWebTransport(options: GrpcWebTransportOptions): Transport {
-  const useBinaryFormat = options.useBinaryFormat ?? true;
+export function createWebTransport(
+  options: ConnectTransportOptions,
+): Transport {
+  const useBinaryFormat = options.useBinaryFormat ?? false;
   return {
     async unary<I extends DescMessage, O extends DescMessage>(
       method: DescMethodUnary<I, O>,
@@ -117,89 +150,58 @@ export function createXHRGrpcWebTransport(options: GrpcWebTransportOptions): Tra
           message,
         },
         next: async (req: UnaryRequest<I, O>): Promise<UnaryResponse<I, O>> => {
-          function fetchXHR(): Promise<FetchXHRResponse> {
-            return new Promise((resolve, reject) => {
-              const xhr = new XMLHttpRequest();
-
-              xhr.open(req.requestMethod ?? "POST", req.url);
-
-              function onAbort() {
-                xhr.abort();
-              }
-
-              req.signal.addEventListener("abort", onAbort);
-
-              xhr.addEventListener("abort", () => {
-                reject(new AbortError("Request aborted"));
-              });
-
-              xhr.addEventListener("load", () => {
-                resolve({
-                  status: xhr.status,
-                  headers: parseHeaders(xhr.getAllResponseHeaders()),
-                  body: new Uint8Array(xhr.response),
-                });
-              });
-
-              xhr.addEventListener("error", () => {
-                reject(new Error("Network Error"));
-              });
-
-              xhr.addEventListener("loadend", () => {
-                req.signal.removeEventListener("abort", onAbort);
-              });
-
-              xhr.responseType = "arraybuffer";
-
-              req.header.forEach((value: string, key: string) => xhr.setRequestHeader(key, value));
-
-              xhr.send(encodeEnvelope(0, serialize(req.message)));
-            });
+          const useGet =
+            options.useHttpGet === true &&
+            method.idempotency ===
+              MethodOptions_IdempotencyLevel.NO_SIDE_EFFECTS;
+          let body: BodyInit | null = null;
+          if (useGet) {
+            req = transformConnectPostToGetRequest(
+              req,
+              serialize(req.message),
+              useBinaryFormat,
+            );
+          } else {
+            body = serialize(req.message);
           }
-          const response = await fetchXHR();
-
-          webValidateResponse(response.status, response.headers);
-
-          const chunks = extractDataChunks(response.body);
-
-          let trailer: Headers | undefined;
-          let message: MessageShape<O> | undefined;
-
-          chunks.forEach(({ flags, data }) => {
-            if (flags === trailerFlag) {
-              if (trailer !== undefined) {
-                throw "extra trailer";
-              }
-
-              // Unary responses require exactly one response message, but in
-              // case of an error, it is perfectly valid to have a response body
-              // that only contains error trailers.
-              trailer = trailerParse(data);
-              return;
-            }
-
-            if (message !== undefined) {
-              throw "extra message";
-            }
-
-            message = parse(data);
+          const fetch = options.fetch ?? globalThis.fetch;
+          const response = await fetch(req.url, {
+            ...fetchOptions,
+            method: req.requestMethod,
+            headers: req.header,
+            signal: req.signal,
+            body,
           });
-
-          if (trailer === undefined) {
-            throw "missing trailer";
+          const { isUnaryError, unaryError } = validateResponse(
+            method.methodKind,
+            useBinaryFormat,
+            response.status,
+            response.headers,
+          );
+          if (isUnaryError) {
+            throw errorFromJson(
+              (await response.json()) as JsonValue,
+              appendHeaders(...trailerDemux(response.headers)),
+              unaryError,
+            );
           }
+          const [demuxedHeader, demuxedTrailer] = trailerDemux(
+            response.headers,
+          );
 
-          validateTrailer(trailer, response.headers);
-
-          if (message === undefined) {
-            throw "missing message";
-          }
-
-          return <UnaryResponse<I, O>>{
+          return {
             stream: false,
-            header: response.headers,
-            message,
-            trailer,
+            service: method.parent,
+            method,
+            header: demuxedHeader,
+            message: useBinaryFormat
+              ? parse(new Uint8Array(await response.arrayBuffer()))
+              : fromJson(
+                  method.output,
+                  (await response.json()) as JsonValue,
+                  getJsonOptions(options.jsonOptions),
+                ),
+            trailer: demuxedTrailer,
           };
         },
       });
