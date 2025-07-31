@@ -44,14 +44,6 @@ const (
 	NotificationServiceHelloStreamProcedure = "/land.gno.dsocial.notificationservice.v1.NotificationService/HelloStream"
 )
 
-// These variables are the protoreflect.Descriptor objects for the RPCs defined in this package.
-var (
-	notificationServiceServiceDescriptor              = _go.File_notificationservice_proto.Services().ByName("NotificationService")
-	notificationServiceRegisterDeviceMethodDescriptor = notificationServiceServiceDescriptor.Methods().ByName("RegisterDevice")
-	notificationServiceHelloMethodDescriptor          = notificationServiceServiceDescriptor.Methods().ByName("Hello")
-	notificationServiceHelloStreamMethodDescriptor    = notificationServiceServiceDescriptor.Methods().ByName("HelloStream")
-)
-
 // NotificationServiceClient is a client for the
 // land.gno.dsocial.notificationservice.v1.NotificationService service.
 type NotificationServiceClient interface {
@@ -72,23 +64,24 @@ type NotificationServiceClient interface {
 // http://api.acme.com or https://acme.com/grpc).
 func NewNotificationServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) NotificationServiceClient {
 	baseURL = strings.TrimRight(baseURL, "/")
+	notificationServiceMethods := _go.File_notificationservice_proto.Services().ByName("NotificationService").Methods()
 	return &notificationServiceClient{
 		registerDevice: connect.NewClient[_go.RegisterDeviceRequest, _go.RegisterDeviceResponse](
 			httpClient,
 			baseURL+NotificationServiceRegisterDeviceProcedure,
-			connect.WithSchema(notificationServiceRegisterDeviceMethodDescriptor),
+			connect.WithSchema(notificationServiceMethods.ByName("RegisterDevice")),
 			connect.WithClientOptions(opts...),
 		),
 		hello: connect.NewClient[_go.HelloRequest, _go.HelloResponse](
 			httpClient,
 			baseURL+NotificationServiceHelloProcedure,
-			connect.WithSchema(notificationServiceHelloMethodDescriptor),
+			connect.WithSchema(notificationServiceMethods.ByName("Hello")),
 			connect.WithClientOptions(opts...),
 		),
 		helloStream: connect.NewClient[_go.HelloStreamRequest, _go.HelloStreamResponse](
 			httpClient,
 			baseURL+NotificationServiceHelloStreamProcedure,
-			connect.WithSchema(notificationServiceHelloStreamMethodDescriptor),
+			connect.WithSchema(notificationServiceMethods.ByName("HelloStream")),
 			connect.WithClientOptions(opts...),
 		),
 	}
@@ -132,22 +125,23 @@ type NotificationServiceHandler interface {
 // By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
 // and JSON codecs. They also support gzip compression.
 func NewNotificationServiceHandler(svc NotificationServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
+	notificationServiceMethods := _go.File_notificationservice_proto.Services().ByName("NotificationService").Methods()
 	notificationServiceRegisterDeviceHandler := connect.NewUnaryHandler(
 		NotificationServiceRegisterDeviceProcedure,
 		svc.RegisterDevice,
-		connect.WithSchema(notificationServiceRegisterDeviceMethodDescriptor),
+		connect.WithSchema(notificationServiceMethods.ByName("RegisterDevice")),
 		connect.WithHandlerOptions(opts...),
 	)
 	notificationServiceHelloHandler := connect.NewUnaryHandler(
 		NotificationServiceHelloProcedure,
 		svc.Hello,
-		connect.WithSchema(notificationServiceHelloMethodDescriptor),
+		connect.WithSchema(notificationServiceMethods.ByName("Hello")),
 		connect.WithHandlerOptions(opts...),
 	)
 	notificationServiceHelloStreamHandler := connect.NewServerStreamHandler(
 		NotificationServiceHelloStreamProcedure,
 		svc.HelloStream,
-		connect.WithSchema(notificationServiceHelloStreamMethodDescriptor),
+		connect.WithSchema(notificationServiceMethods.ByName("HelloStream")),
 		connect.WithHandlerOptions(opts...),
 	)
 	return "/land.gno.dsocial.notificationservice.v1.NotificationService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

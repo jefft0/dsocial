@@ -46,15 +46,6 @@ const (
 	IndexerServiceHelloStreamProcedure = "/land.gno.dsocial.indexerservice.v1.IndexerService/HelloStream"
 )
 
-// These variables are the protoreflect.Descriptor objects for the RPCs defined in this package.
-var (
-	indexerServiceServiceDescriptor               = _go.File_indexerservice_proto.Services().ByName("IndexerService")
-	indexerServiceGetHomePostsMethodDescriptor    = indexerServiceServiceDescriptor.Methods().ByName("GetHomePosts")
-	indexerServiceStreamPostReplyMethodDescriptor = indexerServiceServiceDescriptor.Methods().ByName("StreamPostReply")
-	indexerServiceHelloMethodDescriptor           = indexerServiceServiceDescriptor.Methods().ByName("Hello")
-	indexerServiceHelloStreamMethodDescriptor     = indexerServiceServiceDescriptor.Methods().ByName("HelloStream")
-)
-
 // IndexerServiceClient is a client for the land.gno.dsocial.indexerservice.v1.IndexerService
 // service.
 type IndexerServiceClient interface {
@@ -77,29 +68,30 @@ type IndexerServiceClient interface {
 // http://api.acme.com or https://acme.com/grpc).
 func NewIndexerServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) IndexerServiceClient {
 	baseURL = strings.TrimRight(baseURL, "/")
+	indexerServiceMethods := _go.File_indexerservice_proto.Services().ByName("IndexerService").Methods()
 	return &indexerServiceClient{
 		getHomePosts: connect.NewClient[_go.GetHomePostsRequest, _go.GetHomePostsResponse](
 			httpClient,
 			baseURL+IndexerServiceGetHomePostsProcedure,
-			connect.WithSchema(indexerServiceGetHomePostsMethodDescriptor),
+			connect.WithSchema(indexerServiceMethods.ByName("GetHomePosts")),
 			connect.WithClientOptions(opts...),
 		),
 		streamPostReply: connect.NewClient[_go.StreamPostReplyRequest, _go.StreamPostReplyResponse](
 			httpClient,
 			baseURL+IndexerServiceStreamPostReplyProcedure,
-			connect.WithSchema(indexerServiceStreamPostReplyMethodDescriptor),
+			connect.WithSchema(indexerServiceMethods.ByName("StreamPostReply")),
 			connect.WithClientOptions(opts...),
 		),
 		hello: connect.NewClient[_go.HelloRequest, _go.HelloResponse](
 			httpClient,
 			baseURL+IndexerServiceHelloProcedure,
-			connect.WithSchema(indexerServiceHelloMethodDescriptor),
+			connect.WithSchema(indexerServiceMethods.ByName("Hello")),
 			connect.WithClientOptions(opts...),
 		),
 		helloStream: connect.NewClient[_go.HelloStreamRequest, _go.HelloStreamResponse](
 			httpClient,
 			baseURL+IndexerServiceHelloStreamProcedure,
-			connect.WithSchema(indexerServiceHelloStreamMethodDescriptor),
+			connect.WithSchema(indexerServiceMethods.ByName("HelloStream")),
 			connect.WithClientOptions(opts...),
 		),
 	}
@@ -151,28 +143,29 @@ type IndexerServiceHandler interface {
 // By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
 // and JSON codecs. They also support gzip compression.
 func NewIndexerServiceHandler(svc IndexerServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
+	indexerServiceMethods := _go.File_indexerservice_proto.Services().ByName("IndexerService").Methods()
 	indexerServiceGetHomePostsHandler := connect.NewUnaryHandler(
 		IndexerServiceGetHomePostsProcedure,
 		svc.GetHomePosts,
-		connect.WithSchema(indexerServiceGetHomePostsMethodDescriptor),
+		connect.WithSchema(indexerServiceMethods.ByName("GetHomePosts")),
 		connect.WithHandlerOptions(opts...),
 	)
 	indexerServiceStreamPostReplyHandler := connect.NewServerStreamHandler(
 		IndexerServiceStreamPostReplyProcedure,
 		svc.StreamPostReply,
-		connect.WithSchema(indexerServiceStreamPostReplyMethodDescriptor),
+		connect.WithSchema(indexerServiceMethods.ByName("StreamPostReply")),
 		connect.WithHandlerOptions(opts...),
 	)
 	indexerServiceHelloHandler := connect.NewUnaryHandler(
 		IndexerServiceHelloProcedure,
 		svc.Hello,
-		connect.WithSchema(indexerServiceHelloMethodDescriptor),
+		connect.WithSchema(indexerServiceMethods.ByName("Hello")),
 		connect.WithHandlerOptions(opts...),
 	)
 	indexerServiceHelloStreamHandler := connect.NewServerStreamHandler(
 		IndexerServiceHelloStreamProcedure,
 		svc.HelloStream,
-		connect.WithSchema(indexerServiceHelloStreamMethodDescriptor),
+		connect.WithSchema(indexerServiceMethods.ByName("HelloStream")),
 		connect.WithHandlerOptions(opts...),
 	)
 	return "/land.gno.dsocial.indexerservice.v1.IndexerService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

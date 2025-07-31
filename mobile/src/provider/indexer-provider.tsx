@@ -1,10 +1,10 @@
 import { createContext, useContext, useEffect, useState } from "react";
 
 import * as Grpc from "@gno/grpc/client";
-import { PromiseClient } from "@connectrpc/connect";
+import { Client } from "@connectrpc/connect";
 
 import { HelloResponse, HelloStreamResponse, UserAndPostID } from "@buf/gnolang_dsocial-indexer.bufbuild_es/indexerservice_pb";
-import { IndexerService } from "@buf/gnolang_dsocial-indexer.connectrpc_es/indexerservice_connect";
+import { IndexerService } from "@buf/gnolang_dsocial-indexer.bufbuild_es/indexerservice_pb";
 
 export interface IndexerContextProps {
   getHomePosts: (userPostAddr: string, startIndex: bigint, endIndex: bigint) => Promise<[number, string]>;
@@ -24,7 +24,7 @@ interface IndexerProviderProps {
 const IndexerContext = createContext<IndexerContextProps | null>(null);
 
 const IndexerProvider: React.FC<IndexerProviderProps> = ({ children, config }) => {
-  const [clientInstance, setClientInstance] = useState<PromiseClient<typeof IndexerService> | undefined>(undefined);
+  const [clientInstance, setClientInstance] = useState<Client<typeof IndexerService> | undefined>(undefined);
 
   useEffect(() => {
     (async () => {
@@ -35,7 +35,7 @@ const IndexerProvider: React.FC<IndexerProviderProps> = ({ children, config }) =
     })();
   }, []);
 
-  const initClient = (config: ConfigProps): PromiseClient<typeof IndexerService> => {
+  const initClient = (config: ConfigProps): Client<typeof IndexerService> => {
     if (clientInstance) {
       return clientInstance;
     }
