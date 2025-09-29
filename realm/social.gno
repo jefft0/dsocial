@@ -1,7 +1,7 @@
 package social
 
 import (
-	"gno.land/p/demo/avl"
+	"gno.land/p/nt/avl"
 )
 
 var (
