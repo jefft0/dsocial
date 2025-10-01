@@ -1,7 +1,6 @@
 package social
 
 import (
-	"std"
 	"strconv"
 	"strings"
 
@@ -14,7 +13,7 @@ import (
 // private utility methods
 
 // Get the UserPosts for the user.
-func getUserPosts(userAddr std.Address) *UserPosts {
+func getUserPosts(userAddr address) *UserPosts {
 	userPosts, exists := gUserPostsByAddress.Get(userAddr.String())
 	if !exists {
 		return nil
@@ -27,7 +26,7 @@ func getUserPosts(userAddr std.Address) *UserPosts {
 // gUserPostsByAddress and update gUserAddressByName with the username.
 // (The caller usually has already called usernameOf to get the username, but if
 // it is "" then this will get it.)
-func getOrCreateUserPosts(userAddr std.Address, username string) *UserPosts {
+func getOrCreateUserPosts(userAddr address, username string) *UserPosts {
 	userPosts := getUserPosts(userAddr)
 	if userPosts != nil {
 		return userPosts
@@ -103,7 +102,7 @@ func summaryOf(str string, length int) string {
 	return line
 }
 
-func displayAddressMD(addr std.Address) string {
+func displayAddressMD(addr address) string {
 	user := users.ResolveAddress(addr)
 	if user == nil {
 		return "[" + addr.String() + "](/r/gnoland/users/v1:" + addr.String() + ")"
@@ -112,7 +111,7 @@ func displayAddressMD(addr std.Address) string {
 	}
 }
 
-func usernameOf(addr std.Address) string {
+func usernameOf(addr address) string {
 	user := users.ResolveAddress(addr)
 	if user == nil {
 		return ""

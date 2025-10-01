@@ -5,7 +5,7 @@ import (
 )
 
 var (
-	gUserPostsByAddress avl.Tree // user's std.Address -> *UserPosts
-	gUserAddressByName  avl.Tree // user's username -> std.Address
+	gUserPostsByAddress avl.Tree // user's address -> *UserPosts
+	gUserAddressByName  avl.Tree // user's username -> address
 	postsCtr            uint64   // increments Post.id globally
 )

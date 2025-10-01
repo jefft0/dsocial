@@ -16,7 +16,7 @@ import (
 	"go.uber.org/zap"
 )
 
-var gUserPostsByAddress = make(map[string]*UserPosts) // user's std.Address -> *UserPosts
+var gUserPostsByAddress = make(map[string]*UserPosts) // user's address -> *UserPosts
 
 type UserAndPostID struct {
 	UserPostAddr string
@@ -25,7 +25,7 @@ type UserAndPostID struct {
 
 type UserPosts struct {
 	homePosts []*UserAndPostID  // Includes this user's threads posts plus posts of users being followed.
-	followers map[string]uint64 // std.Address -> startedPostsCtr of the follower
+	followers map[string]uint64 // address -> startedPostsCtr of the follower
 }
 
 func newUserPosts() *UserPosts {
