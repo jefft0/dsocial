@@ -3,14 +3,13 @@ package social
 import (
 	"bytes"
 	"sort"
-	"std"
 	"strconv"
 	"strings"
 	"time"
 
-	"gno.land/p/demo/avl"
-	"gno.land/p/demo/ufmt"
 	"gno.land/p/moul/txlink"
+	"gno.land/p/nt/avl"
+	"gno.land/p/nt/ufmt"
 	"gno.land/r/sys/users"
 )
 
@@ -20,21 +19,21 @@ type FollowingInfo struct {
 }
 
 // UserPosts is similar to boards.Board where each user has their own "board" for
-// posts which come from the user. The list of posts is identified by the user's std.Address .
+// posts which come from the user. The list of posts is identified by the user's address .
 // A user's "home feed" may contain other posts (from followed users, etc.) but this only
 // has the top-level posts from the user (not replies to other user's posts).
 type UserPosts struct {
 	url           string
-	userAddr      std.Address
+	userAddr      address
 	threads       avl.Tree // PostID -> *Post
 	homePosts     avl.Tree // PostID -> *Post. Includes this user's threads posts plus posts of users being followed.
 	lastRefreshId PostID   // Updated by refreshHomePosts
-	followers     avl.Tree // std.Address -> ""
-	following     avl.Tree // std.Address -> *FollowingInfo
+	followers     avl.Tree // address -> ""
+	following     avl.Tree // address -> *FollowingInfo
 }
 
 // Create a new userPosts for the user. Panic if there is already a userPosts for the user.
-func newUserPosts(url string, userAddr std.Address) *UserPosts {
+func newUserPosts(url string, userAddr address) *UserPosts {
 	if gUserPostsByAddress.Has(userAddr.String()) {
 		panic("userPosts already exists")
 	}
@@ -75,7 +74,7 @@ func (userPosts *UserPosts) AddThread(body string) *Post {
 // If there is no UserPosts for followedAddr, then do nothing and return 0. (We don't expect
 // this because this is usually called by clicking on the display page of followedAddr.)
 // Return the value of startedPostsCtr in the added FollowingInfo.
-func (userPosts *UserPosts) Follow(followedAddr std.Address) PostID {
+func (userPosts *UserPosts) Follow(followedAddr address) PostID {
 	if userPosts.following.Has(followedAddr.String()) {
 		// Already following.
 		return PostID(0)
@@ -97,7 +96,7 @@ func (userPosts *UserPosts) Follow(followedAddr std.Address) PostID {
 // Remove followedAddr from following.
 // If there is a UserPosts for followedAddr, then remove this user from its followers.
 // If there is no UserPosts for followedAddr, then do nothing. (We don't expect this usually.)
-func (userPosts *UserPosts) Unfollow(followedAddr std.Address) {
+func (userPosts *UserPosts) Unfollow(followedAddr address) {
 	userPosts.following.Remove(followedAddr.String())
 
 	followedUserPosts := getUserPosts(followedAddr)
@@ -152,7 +151,7 @@ func (userPosts *UserPosts) RenderFollowers() string {
 	// List the followers, sorted by name.
 	names := []string{}
 	userPosts.followers.Iterate("", "", func(key string, value interface{}) bool {
-		if user := users.ResolveAddress(std.Address(key)); user != nil {
+		if user := users.ResolveAddress(address(key)); user != nil {
 			names = append(names, user.Name())
 		}
 		return false
@@ -177,7 +176,7 @@ func (userPosts *UserPosts) RenderFollowing() string {
 	nameAddrs := []string{}
 	userPosts.following.Iterate("", "", func(addr string, infoI interface{}) bool {
 		info := infoI.(*FollowingInfo)
-		if user := users.ResolveAddress(std.Address(addr)); user != nil {
+		if user := users.ResolveAddress(address(addr)); user != nil {
 			nameAddrs = append(nameAddrs, user.Name()+"/"+addr+"/"+info.startedFollowingAt.Format("2006-01-02"))
 		}
 		return false
@@ -189,7 +188,7 @@ func (userPosts *UserPosts) RenderFollowing() string {
 		addr := parts[1]
 		since := parts[2]
 		str += " * [@" + name + "](/r/berty/social:" + name + ") since " + since +
-			"  \\[[unfollow](" + userPosts.GetUnfollowFormURL(std.Address(addr)) + ")]\n"
+			"  \\[[unfollow](" + userPosts.GetUnfollowFormURL(address(addr)) + ")]\n"
 	}
 
 	return str
@@ -216,7 +215,7 @@ func (userPosts *UserPosts) GetFollowFormURL() string {
 	return txlink.Call("Follow", "followedAddr", userPosts.userAddr.String())
 }
 
-func (userPosts *UserPosts) GetUnfollowFormURL(followedAddr std.Address) string {
+func (userPosts *UserPosts) GetUnfollowFormURL(followedAddr address) string {
 	return txlink.Call("Unfollow", "followedAddr", followedAddr.String())
 }
 
@@ -231,7 +230,7 @@ func (userPosts *UserPosts) refreshHomePosts() {
 	minStartKey := postIDKey(userPosts.lastRefreshId + 1)
 
 	userPosts.following.Iterate("", "", func(followedAddr string, infoI interface{}) bool {
-		followedUserPosts := getUserPosts(std.Address(followedAddr))
+		followedUserPosts := getUserPosts(address(followedAddr))
 		if followedUserPosts == nil {
 			return false
 		}

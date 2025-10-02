@@ -1,17 +1,17 @@
 package social
 
 import (
-	"std"
+	"chain/runtime"
 	"strconv"
 
-	"gno.land/p/demo/avl"
-	"gno.land/p/demo/avlhelpers"
-	"gno.land/p/demo/ufmt"
+	"gno.land/p/jefft0/avlhelpers"
+	"gno.land/p/nt/avl"
+	"gno.land/p/nt/ufmt"
 	"gno.land/r/sys/users"
 )
 
 type UserAndPostID struct {
-	UserPostAddr std.Address
+	UserPostAddr address
 	PostID       PostID
 }
 
@@ -20,7 +20,7 @@ type UserAndPostID struct {
 // Return the "thread ID" of the new post.
 // (This is similar to boards.CreateThread, but no message title)
 func PostMessage(_ realm, body string) PostID {
-	caller := std.OriginCaller()
+	caller := runtime.OriginCaller()
 	name := usernameOf(caller)
 	if name == "" {
 		panic("please register")
@@ -37,8 +37,8 @@ func PostMessage(_ realm, body string) PostID {
 // The caller must already be registered with /r/gnoland/users/v1 Register.
 // Return the new post ID.
 // (This is similar to boards.CreateReply.)
-func PostReply(_ realm, userPostsAddr std.Address, threadid, postid PostID, body string) PostID {
-	caller := std.OriginCaller()
+func PostReply(_ realm, userPostsAddr address, threadid, postid PostID, body string) PostID {
+	caller := runtime.OriginCaller()
 	if usernameOf(caller) == "" {
 		panic("please register")
 	}
@@ -67,8 +67,8 @@ func PostReply(_ realm, userPostsAddr std.Address, threadid, postid PostID, body
 // the original call to PostMessage. This must be a top-level thread (not a reply).
 // Return the new post ID.
 // (This is similar to boards.CreateRepost.)
-func RepostThread(_ realm, userPostsAddr std.Address, threadid PostID, comment string) PostID {
-	caller := std.OriginCaller()
+func RepostThread(_ realm, userPostsAddr address, threadid PostID, comment string) PostID {
+	caller := runtime.OriginCaller()
 	if userPostsAddr == caller {
 		panic("Cannot repost a user's own message")
 	}
@@ -134,7 +134,7 @@ func GetJsonTopPostsByID(addrAndIDs []UserAndPostID) string {
 // If threadID is X and replyID is Y, then return the posts in the thread starting with replyID. (Like render args "user/2/5".)
 // The response includes reposts by this user (only if threadID is 0), but not messages of other
 // users that are being followed. (See GetHomePosts.) The response is a JSON string.
-func GetThreadPosts(userPostsAddr std.Address, threadID int, replyID int, startIndex int, endIndex int) string {
+func GetThreadPosts(userPostsAddr address, threadID int, replyID int, startIndex int, endIndex int) string {
 	userPosts := getUserPosts(userPostsAddr)
 	if userPosts == nil {
 		panic("posts for userPostsAddr do not exist")
@@ -164,7 +164,7 @@ func GetThreadPosts(userPostsAddr std.Address, threadID int, replyID int, startI
 // Update the home posts by scanning all posts from all followed users and adding the
 // followed posts since the last call to RefreshHomePosts (or since started following the user).
 // Return the new count of home posts. The result is something like "(12 int)".
-func RefreshHomePosts(_ realm, userPostsAddr std.Address) int {
+func RefreshHomePosts(_ realm, userPostsAddr address) int {
 	userPosts := getUserPosts(userPostsAddr)
 	if userPosts == nil {
 		panic("posts for userPostsAddr do not exist")
@@ -178,7 +178,7 @@ func RefreshHomePosts(_ realm, userPostsAddr std.Address) int {
 // The result is something like "(12 int)".
 // This returns the current count of the home posts (without need to pay gas). To include the
 // latest followed posts, call RefreshHomePosts.
-func GetHomePostsCount(userPostsAddr std.Address) int {
+func GetHomePostsCount(userPostsAddr address) int {
 	return GetHomePosts(userPostsAddr).Size()
 }
 
@@ -189,7 +189,7 @@ func GetHomePostsCount(userPostsAddr std.Address) int {
 // If you just want the total count, use GetHomePostsCount.
 // This returns the current state of the home posts (without need to pay gas). To include the
 // latest followed posts, call RefreshHomePosts.
-func GetHomePosts(userPostsAddr std.Address) *avl.Tree {
+func GetHomePosts(userPostsAddr address) *avl.Tree {
 	userPosts := getUserPosts(userPostsAddr)
 	if userPosts == nil {
 		panic("posts for userPostsAddr do not exist")
@@ -204,7 +204,7 @@ func GetHomePosts(userPostsAddr std.Address) *avl.Tree {
 // The response is a JSON string.
 // This returns the current state of the home posts (without need to pay gas). To include the
 // latest posts, call RefreshHomePosts.
-func GetJsonHomePosts(userPostsAddr std.Address, startIndex int, endIndex int) string {
+func GetJsonHomePosts(userPostsAddr address, startIndex int, endIndex int) string {
 	allPosts := GetHomePosts(userPostsAddr)
 	postsJson := ""
 	for i := startIndex; i < endIndex && i < allPosts.Size(); i++ {
@@ -224,8 +224,8 @@ func GetJsonHomePosts(userPostsAddr std.Address, startIndex int, endIndex int) s
 }
 
 // Update the caller to follow the user with followedAddr. See UserPosts.Follow.
-func Follow(_ realm, followedAddr std.Address) PostID {
-	caller := std.OriginCaller()
+func Follow(_ realm, followedAddr address) PostID {
+	caller := runtime.OriginCaller()
 	name := usernameOf(caller)
 	if name == "" {
 		panic("please register")
@@ -241,8 +241,8 @@ func Follow(_ realm, followedAddr std.Address) PostID {
 }
 
 // Update the caller to unfollow the user with followedAddr. See UserPosts.Unfollow.
-func Unfollow(_ realm, followedAddr std.Address) {
-	caller := std.OriginCaller()
+func Unfollow(_ realm, followedAddr address) {
+	caller := runtime.OriginCaller()
 	name := usernameOf(caller)
 	if name == "" {
 		panic("please register")
@@ -263,8 +263,8 @@ func Unfollow(_ realm, followedAddr std.Address) {
 // (This function's arguments are similar to PostReply.)
 // The caller must already be registered with /r/gnoland/users/v1 Register.
 // Return a boolean indicating whether the userAddr was added. See Post.AddReaction.
-func AddReaction(_ realm, userPostsAddr std.Address, threadid, postid PostID, reaction Reaction) bool {
-	caller := std.OriginCaller()
+func AddReaction(_ realm, userPostsAddr address, threadid, postid PostID, reaction Reaction) bool {
+	caller := runtime.OriginCaller()
 	if usernameOf(caller) == "" {
 		panic("please register")
 	}
@@ -293,8 +293,8 @@ func AddReaction(_ realm, userPostsAddr std.Address, threadid, postid PostID, re
 // (This function's arguments are similar to PostReply.)
 // The caller must already be registered with /r/gnoland/users/v1 Register.
 // Return a boolean indicating whether the userAddr was removed. See Post.RemoveReaction.
-func RemoveReaction(_ realm, userPostsAddr std.Address, threadid, postid PostID, reaction Reaction) bool {
-	caller := std.OriginCaller()
+func RemoveReaction(_ realm, userPostsAddr address, threadid, postid PostID, reaction Reaction) bool {
+	caller := runtime.OriginCaller()
 	if usernameOf(caller) == "" {
 		panic("please register")
 	}
@@ -319,7 +319,7 @@ func RemoveReaction(_ realm, userPostsAddr std.Address, threadid, postid PostID,
 
 // Call users.ResolveAddress and return the result as JSON, or "" if not found.
 // (This is a temporary utility until gno.land supports returning structured data directly.)
-func GetJsonUserByAddress(addr std.Address) string {
+func GetJsonUserByAddress(addr address) string {
 	user := users.ResolveAddress(addr)
 	if user == nil {
 		return ""
@@ -345,7 +345,7 @@ func GetJsonUserByName(name string) string {
 // the number of items, not the items themselves. To get the items, see
 // GetJsonFollowers, etc.
 // The response is a JSON string.
-func GetJsonUserPostsInfo(address std.Address) string {
+func GetJsonUserPostsInfo(address address) string {
 	userPosts := getUserPosts(address)
 	if userPosts == nil {
 		return ""
@@ -363,7 +363,7 @@ func GetJsonUserPostsInfo(address std.Address) string {
 // the list of followers. If the user address is not found, return "".
 // Limit the response to entries from startIndex up to (not including) endIndex.
 // The response is a JSON string.
-func GetJsonFollowers(address std.Address, startIndex int, endIndex int) string {
+func GetJsonFollowers(address address, startIndex int, endIndex int) string {
 	userPosts := getUserPosts(address)
 	if userPosts == nil {
 		return ""
@@ -388,7 +388,7 @@ func GetJsonFollowers(address std.Address, startIndex int, endIndex int) string 
 // If the user address is not found, return "".
 // Limit the response to entries from startIndex up to (not including) endIndex.
 // The response is a JSON string.
-func GetJsonFollowing(address std.Address, startIndex int, endIndex int) string {
+func GetJsonFollowing(address address, startIndex int, endIndex int) string {
 	userPosts := getUserPosts(address)
 	if userPosts == nil {
 		return ""
