@@ -312,46 +312,35 @@ type CallInfoResponseTransactionResponse struct {
 // GetData returns CallInfoResponseTransactionResponse.Data, and is useful for accessing the field via an interface.
 func (v *CallInfoResponseTransactionResponse) GetData() string { return v.Data }
 
-// getTransactionsResponse is returned by getTransactions on success.
-type getTransactionsResponse struct {
-	// Retrieves a list of Transactions that match the given filter criteria. If the result is incomplete due to errors, both partial results and errors are returned.
-	Transactions []getTransactionsTransactionsTransaction `json:"transactions"`
-}
-
-// GetTransactions returns getTransactionsResponse.Transactions, and is useful for accessing the field via an interface.
-func (v *getTransactionsResponse) GetTransactions() []getTransactionsTransactionsTransaction {
-	return v.Transactions
-}
-
-// getTransactionsTransactionsTransaction includes the requested fields of the GraphQL type Transaction.
+// getTransactionsGetTransactionsTransaction includes the requested fields of the GraphQL type Transaction.
 // The GraphQL type's documentation follows.
 //
 // Defines a transaction within a block, detailing its execution specifics and content.
-type getTransactionsTransactionsTransaction struct {
+type getTransactionsGetTransactionsTransaction struct {
 	CallInfo `json:"-"`
 }
 
-// GetMessages returns getTransactionsTransactionsTransaction.Messages, and is useful for accessing the field via an interface.
-func (v *getTransactionsTransactionsTransaction) GetMessages() []CallInfoMessagesTransactionMessage {
+// GetMessages returns getTransactionsGetTransactionsTransaction.Messages, and is useful for accessing the field via an interface.
+func (v *getTransactionsGetTransactionsTransaction) GetMessages() []CallInfoMessagesTransactionMessage {
 	return v.CallInfo.Messages
 }
 
-// GetResponse returns getTransactionsTransactionsTransaction.Response, and is useful for accessing the field via an interface.
-func (v *getTransactionsTransactionsTransaction) GetResponse() CallInfoResponseTransactionResponse {
+// GetResponse returns getTransactionsGetTransactionsTransaction.Response, and is useful for accessing the field via an interface.
+func (v *getTransactionsGetTransactionsTransaction) GetResponse() CallInfoResponseTransactionResponse {
 	return v.CallInfo.Response
 }
 
-func (v *getTransactionsTransactionsTransaction) UnmarshalJSON(b []byte) error {
+func (v *getTransactionsGetTransactionsTransaction) UnmarshalJSON(b []byte) error {
 
 	if string(b) == "null" {
 		return nil
 	}
 
 	var firstPass struct {
-		*getTransactionsTransactionsTransaction
+		*getTransactionsGetTransactionsTransaction
 		graphql.NoUnmarshalJSON
 	}
-	firstPass.getTransactionsTransactionsTransaction = v
+	firstPass.getTransactionsGetTransactionsTransaction = v
 
 	err := json.Unmarshal(b, &firstPass)
 	if err != nil {
@@ -366,13 +355,13 @@ func (v *getTransactionsTransactionsTransaction) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-type __premarshalgetTransactionsTransactionsTransaction struct {
+type __premarshalgetTransactionsGetTransactionsTransaction struct {
 	Messages []CallInfoMessagesTransactionMessage `json:"messages"`
 
 	Response CallInfoResponseTransactionResponse `json:"response"`
 }
 
-func (v *getTransactionsTransactionsTransaction) MarshalJSON() ([]byte, error) {
+func (v *getTransactionsGetTransactionsTransaction) MarshalJSON() ([]byte, error) {
 	premarshaled, err := v.__premarshalJSON()
 	if err != nil {
 		return nil, err
@@ -380,8 +369,86 @@ func (v *getTransactionsTransactionsTransaction) MarshalJSON() ([]byte, error) {
 	return json.Marshal(premarshaled)
 }
 
-func (v *getTransactionsTransactionsTransaction) __premarshalJSON() (*__premarshalgetTransactionsTransactionsTransaction, error) {
-	var retval __premarshalgetTransactionsTransactionsTransaction
+func (v *getTransactionsGetTransactionsTransaction) __premarshalJSON() (*__premarshalgetTransactionsGetTransactionsTransaction, error) {
+	var retval __premarshalgetTransactionsGetTransactionsTransaction
+
+	retval.Messages = v.CallInfo.Messages
+	retval.Response = v.CallInfo.Response
+	return &retval, nil
+}
+
+// getTransactionsResponse is returned by getTransactions on success.
+type getTransactionsResponse struct {
+	// Retrieves a list of Transactions that match the given
+	// where criteria. If the result is incomplete due to errors, both partial
+	// results and errors are returned.
+	GetTransactions []getTransactionsGetTransactionsTransaction `json:"getTransactions"`
+}
+
+// GetGetTransactions returns getTransactionsResponse.GetTransactions, and is useful for accessing the field via an interface.
+func (v *getTransactionsResponse) GetGetTransactions() []getTransactionsGetTransactionsTransaction {
+	return v.GetTransactions
+}
+
+// subscribeTransactionsGetTransactionsTransaction includes the requested fields of the GraphQL type Transaction.
+// The GraphQL type's documentation follows.
+//
+// Defines a transaction within a block, detailing its execution specifics and content.
+type subscribeTransactionsGetTransactionsTransaction struct {
+	CallInfo `json:"-"`
+}
+
+// GetMessages returns subscribeTransactionsGetTransactionsTransaction.Messages, and is useful for accessing the field via an interface.
+func (v *subscribeTransactionsGetTransactionsTransaction) GetMessages() []CallInfoMessagesTransactionMessage {
+	return v.CallInfo.Messages
+}
+
+// GetResponse returns subscribeTransactionsGetTransactionsTransaction.Response, and is useful for accessing the field via an interface.
+func (v *subscribeTransactionsGetTransactionsTransaction) GetResponse() CallInfoResponseTransactionResponse {
+	return v.CallInfo.Response
+}
+
+func (v *subscribeTransactionsGetTransactionsTransaction) UnmarshalJSON(b []byte) error {
+
+	if string(b) == "null" {
+		return nil
+	}
+
+	var firstPass struct {
+		*subscribeTransactionsGetTransactionsTransaction
+		graphql.NoUnmarshalJSON
+	}
+	firstPass.subscribeTransactionsGetTransactionsTransaction = v
+
+	err := json.Unmarshal(b, &firstPass)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(
+		b, &v.CallInfo)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+type __premarshalsubscribeTransactionsGetTransactionsTransaction struct {
+	Messages []CallInfoMessagesTransactionMessage `json:"messages"`
+
+	Response CallInfoResponseTransactionResponse `json:"response"`
+}
+
+func (v *subscribeTransactionsGetTransactionsTransaction) MarshalJSON() ([]byte, error) {
+	premarshaled, err := v.__premarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(premarshaled)
+}
+
+func (v *subscribeTransactionsGetTransactionsTransaction) __premarshalJSON() (*__premarshalsubscribeTransactionsGetTransactionsTransaction, error) {
+	var retval __premarshalsubscribeTransactionsGetTransactionsTransaction
 
 	retval.Messages = v.CallInfo.Messages
 	retval.Response = v.CallInfo.Response
@@ -390,91 +457,30 @@ func (v *getTransactionsTransactionsTransaction) __premarshalJSON() (*__premarsh
 
 // subscribeTransactionsResponse is returned by subscribeTransactions on success.
 type subscribeTransactionsResponse struct {
-	// Subscribes to real-time updates of Transactions that match the provided filter criteria.
-	// This subscription starts immediately and only includes Transactions added to the blockchain after the subscription is active.
+	// Subscribes to real-time updates of Transactions that
+	// match the provided filter criteria. This subscription starts immediately
+	// and only includes Transactions added to the blockchain after the subscription
+	// is active.
 	//
-	// This is useful for applications needing to track Transactions in real-time, such as wallets tracking incoming transactions
-	// or analytics platforms monitoring blockchain activity.
+	// This is useful for applications needing to track Transactions in real-time,
+	// such as wallets tracking incoming transactions or analytics platforms
+	// monitoring blockchain activity.
 	//
 	// Returns:
-	// - Transaction: Each received update is a Transaction object that matches the filter criteria.
-	Transactions subscribeTransactionsTransactionsTransaction `json:"transactions"`
+	// - Transaction: Each received update is a Transaction object that matches
+	// the where criteria.
+	GetTransactions subscribeTransactionsGetTransactionsTransaction `json:"getTransactions"`
 }
 
-// GetTransactions returns subscribeTransactionsResponse.Transactions, and is useful for accessing the field via an interface.
-func (v *subscribeTransactionsResponse) GetTransactions() subscribeTransactionsTransactionsTransaction {
-	return v.Transactions
-}
-
-// subscribeTransactionsTransactionsTransaction includes the requested fields of the GraphQL type Transaction.
-// The GraphQL type's documentation follows.
-//
-// Defines a transaction within a block, detailing its execution specifics and content.
-type subscribeTransactionsTransactionsTransaction struct {
-	CallInfo `json:"-"`
-}
-
-// GetMessages returns subscribeTransactionsTransactionsTransaction.Messages, and is useful for accessing the field via an interface.
-func (v *subscribeTransactionsTransactionsTransaction) GetMessages() []CallInfoMessagesTransactionMessage {
-	return v.CallInfo.Messages
-}
-
-// GetResponse returns subscribeTransactionsTransactionsTransaction.Response, and is useful for accessing the field via an interface.
-func (v *subscribeTransactionsTransactionsTransaction) GetResponse() CallInfoResponseTransactionResponse {
-	return v.CallInfo.Response
-}
-
-func (v *subscribeTransactionsTransactionsTransaction) UnmarshalJSON(b []byte) error {
-
-	if string(b) == "null" {
-		return nil
-	}
-
-	var firstPass struct {
-		*subscribeTransactionsTransactionsTransaction
-		graphql.NoUnmarshalJSON
-	}
-	firstPass.subscribeTransactionsTransactionsTransaction = v
-
-	err := json.Unmarshal(b, &firstPass)
-	if err != nil {
-		return err
-	}
-
-	err = json.Unmarshal(
-		b, &v.CallInfo)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-type __premarshalsubscribeTransactionsTransactionsTransaction struct {
-	Messages []CallInfoMessagesTransactionMessage `json:"messages"`
-
-	Response CallInfoResponseTransactionResponse `json:"response"`
-}
-
-func (v *subscribeTransactionsTransactionsTransaction) MarshalJSON() ([]byte, error) {
-	premarshaled, err := v.__premarshalJSON()
-	if err != nil {
-		return nil, err
-	}
-	return json.Marshal(premarshaled)
-}
-
-func (v *subscribeTransactionsTransactionsTransaction) __premarshalJSON() (*__premarshalsubscribeTransactionsTransactionsTransaction, error) {
-	var retval __premarshalsubscribeTransactionsTransactionsTransaction
-
-	retval.Messages = v.CallInfo.Messages
-	retval.Response = v.CallInfo.Response
-	return &retval, nil
+// GetGetTransactions returns subscribeTransactionsResponse.GetTransactions, and is useful for accessing the field via an interface.
+func (v *subscribeTransactionsResponse) GetGetTransactions() subscribeTransactionsGetTransactionsTransaction {
+	return v.GetTransactions
 }
 
 // The query executed by getTransactions.
 const getTransactions_Operation = `
 query getTransactions {
-	transactions(filter: {message:{vm_param:{exec:{pkg_path:"gno.land/r/berty/social"}}},success:true}) {
+	getTransactions(where: {messages:{value:{MsgCall:{pkg_path:{eq:"gno.land/r/berty/social"}}}},success:{eq:true}}) {
 		... CallInfo
 	}
 }
@@ -519,7 +525,7 @@ func getTransactions(
 // The subscription executed by subscribeTransactions.
 const subscribeTransactions_Operation = `
 subscription subscribeTransactions {
-	transactions(filter: {message:{vm_param:{exec:{pkg_path:"gno.land/r/berty/social"}}},success:true}) {
+	getTransactions(where: {messages:{value:{MsgCall:{pkg_path:{eq:"gno.land/r/berty/social"}}}},success:{eq:true}}) {
 		... CallInfo
 	}
 }

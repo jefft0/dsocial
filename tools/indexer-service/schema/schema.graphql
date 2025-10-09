@@ -1,414 +1,2461 @@
-"""The @defer directive may be specified on a fragment spread to imply de-prioritization, that causes the fragment to be omitted in the initial response, and delivered as a subsequent response afterward. A query with @defer directive will cause the request to potentially return multiple responses, where non-deferred data is delivered in the initial response and data deferred delivered in a subsequent response. @include and @skip take precedence over @defer."""
+"""
+The @defer directive may be specified on a fragment spread to imply de-prioritization, that causes the fragment to be omitted in the initial response, and delivered as a subsequent response afterward. A query with @defer directive will cause the request to potentially return multiple responses, where non-deferred data is delivered in the initial response and data deferred delivered in a subsequent response. @include and @skip take precedence over @defer.
+"""
 directive @defer(
 	if: Boolean
 	label: String
 ) on FRAGMENT_SPREAD | INLINE_FRAGMENT
 
-"""The @deprecated built-in directive is used within the type system definition language to indicate deprecated portions of a GraphQL service's schema, such as deprecated fields on a type, arguments on a field, input fields on an input type, or values of an enum type."""
+"""
+The @deprecated built-in directive is used within the type system definition language to indicate deprecated portions of a GraphQL service's schema, such as deprecated fields on a type, arguments on a field, input fields on an input type, or values of an enum type.
+"""
 directive @deprecated(
 	reason: String
 ) on FIELD_DEFINITION | ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION | ENUM_VALUE
 
-"""The @include directive may be provided for fields, fragment spreads, and inline fragments, and allows for conditional inclusion during execution as described by the if argument."""
+directive @filterable(
+"""
+Add extra functionality to this field apart from the filtering capabilities.
+"""
+	extras: [FilterableExtra!]
+) on FIELD_DEFINITION
+
+"""
+The @include directive may be provided for fields, fragment spreads, and inline fragments, and allows for conditional inclusion during execution as described by the if argument.
+"""
 directive @include(
 	if: Boolean!
 ) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
 
-"""The @skip directive may be provided for fields, fragment spreads, and inline fragments, and allows for conditional exclusion during execution as described by the if argument."""
+"""
+The @skip directive may be provided for fields, fragment spreads, and inline fragments, and allows for conditional exclusion during execution as described by the if argument.
+"""
 directive @skip(
 	if: Boolean!
 ) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
 
-"""The @specifiedBy built-in directive is used within the type system definition language to provide a scalar specification URL for specifying the behavior of custom scalar types."""
+"""
+The @specifiedBy built-in directive is used within the type system definition language to provide a scalar specification URL for specifying the behavior of custom scalar types.
+"""
 directive @specifiedBy(
 	url: String!
 ) on SCALAR
 
-"""`AmountInput` is a range of token quantities to filter by."""
+"""
+`AmountInput` is a range of token quantities to filter by.
+"""
 input AmountInput {
-"""`AmountInput` is a range of token quantities to filter by."""
+"""
+`AmountInput` is a range of token quantities to filter by.
+"""
 	from: Int
-"""`AmountInput` is a range of token quantities to filter by."""
+"""
+`AmountInput` is a range of token quantities to filter by.
+"""
 	to: Int
-"""`AmountInput` is a range of token quantities to filter by."""
+"""
+`AmountInput` is a range of token quantities to filter by.
+"""
 	denomination: String
 }
 
-"""`BankMsgSend` is a message with a message router of `bank` and a message type of `send`.
-`BankMsgSend` is the fund transfer tx message."""
+"""
+`BankMsgSend` is a message with a message router of `bank` and a message type of `send`.
+`BankMsgSend` is the fund transfer tx message.
+"""
 type BankMsgSend {
-"""the bech32 address of the fund sender.
-ex) `g1jg8mtutu9khhfwc4nxmuhcpftf0pajdhfvsqf5`"""
+"""
+the bech32 address of the fund sender.
+ex) `g1jg8mtutu9khhfwc4nxmuhcpftf0pajdhfvsqf5`
+"""
 	from_address: String!
-"""the bech32 address of the fund receiver.
-ex) `g1jg8mtutu9khhfwc4nxmuhcpftf0pajdhfvsqf5`"""
+"""
+the bech32 address of the fund receiver.
+ex) `g1jg8mtutu9khhfwc4nxmuhcpftf0pajdhfvsqf5`
+"""
 	to_address: String!
-"""the denomination and amount of fund sent ("<amount><denomination>").
-ex) `1000000ugnot`"""
+"""
+the denomination and amount of fund sent ("<amount><denomination>").
+ex) `1000000ugnot`
+"""
 	amount: String!
 }
 
-"""`BankMsgSendInput` represents input parameters required when the message type is `send`."""
+"""
+`BankMsgSendInput` represents input parameters required when the message type is `send`.
+"""
 input BankMsgSendInput {
-"""`BankMsgSendInput` represents input parameters required when the message type is `send`."""
+"""
+`BankMsgSendInput` represents input parameters required when the message type is `send`.
+"""
 	from_address: String
-"""`BankMsgSendInput` represents input parameters required when the message type is `send`."""
+"""
+`BankMsgSendInput` represents input parameters required when the message type is `send`.
+"""
 	to_address: String
-"""`BankMsgSendInput` represents input parameters required when the message type is `send`."""
+"""
+`BankMsgSendInput` represents input parameters required when the message type is `send`.
+"""
 	amount: AmountInput
 }
 
-"""Represents a blockchain block with various attributes detailing its creation and content."""
+"""
+Represents a blockchain block with various attributes detailing its creation and content.
+"""
 type Block {
-"""A unique identifier for the Block determined by its position in the blockchain.
-This integer is strictly increasing with each new Block."""
+"""
+A unique identifier for the block, determined by the blockchain's header.
+It is computed as a Merkle tree from the header.
+"""
+	hash: String!
+"""
+A unique identifier for the Block determined by its position in the blockchain.
+This integer is strictly increasing with each new Block.
+"""
 	height: Int!
-"""The software version of the node that created this Block, indicating the specific
-implementation and versioning of the blockchain protocol used."""
+"""
+The software version of the node that created this Block, indicating the specific
+implementation and versioning of the blockchain protocol used.
+"""
 	version: String!
-"""An identifier for the specific blockchain network this Block belongs to. Helps in
-distinguishing between different networks like mainnet, testnet, etc."""
+"""
+An identifier for the specific blockchain network this Block belongs to. Helps in
+distinguishing between different networks like mainnet, testnet, etc.
+"""
 	chain_id: String!
-"""The timestamp at which this Block was proposed and finalized in the blockchain. Represented in UTC."""
+"""
+The timestamp at which this Block was proposed and finalized in the blockchain. Represented in UTC.
+"""
 	time: Time!
-"""Encoded data representing the blockchain address of the proposer who submitted this Block.
-It is raw and requires decoding to be human-readable."""
+"""
+The number of transactions this Block belongs to.
+"""
+	num_txs: Int!
+"""
+The total number of transactions that have occurred up to this block.
+Indicates the total number of transactions that have occurred up to this point, even if there are no transactions in this block.
+"""
+	total_txs: Int!
+"""
+The application's version.
+"""
+	app_version: String!
+"""
+The last committed block hash.
+"""
+	last_block_hash: String!
+"""
+Commit hash from validators from the last block.
+"""
+	last_commit_hash: String!
+"""
+Validators for the current block.
+"""
+	validators_hash: String!
+"""
+Validators for the next block.
+"""
+	next_validators_hash: String!
+"""
+Consensus params for current block.
+"""
+	consensus_hash: String!
+"""
+State after txs from the previous block.
+"""
+	app_hash: String!
+"""
+Root hash of all results from the txs from the previous block.
+"""
+	last_results_hash: String!
+"""
+Encoded data representing the blockchain address of the proposer who submitted this Block.
+It is raw and requires decoding to be human-readable.
+"""
 	proposer_address_raw: String!
+"""
+txs contains transactions included in the block.
+"""
+	txs: [BlockTransaction]!
 }
 
-"""Filters for querying Blocks within specified criteria related to their attributes."""
+"""
+Filters for querying Blocks within specified criteria related to their attributes.
+"""
 input BlockFilter {
-"""Filters for querying Blocks within specified criteria related to their attributes."""
+"""
+Filters for querying Blocks within specified criteria related to their attributes.
+"""
 	from_height: Int
-"""Filters for querying Blocks within specified criteria related to their attributes."""
+"""
+Filters for querying Blocks within specified criteria related to their attributes.
+"""
 	to_height: Int
-"""Filters for querying Blocks within specified criteria related to their attributes."""
+"""
+Filters for querying Blocks within specified criteria related to their attributes.
+"""
 	from_time: Time
-"""Filters for querying Blocks within specified criteria related to their attributes."""
+"""
+Filters for querying Blocks within specified criteria related to their attributes.
+"""
 	to_time: Time
 }
 
-"""The `Boolean` scalar type represents `true` or `false`."""
+input BlockOrder {
+	height: Order!
+}
+
+"""
+Defines a transaction within a block, its execution specifics and content.
+"""
+type BlockTransaction {
+"""
+Hash computes the TMHASH hash of the wire encoded transaction.
+"""
+	hash: String!
+"""
+Fee information for the transaction.
+"""
+	fee: TxFee!
+"""
+`memo` are string information stored within a transaction.
+`memo` can be utilized to find or distinguish transactions.
+For example, when trading a specific exchange, you would utilize the memo field of the transaction.
+"""
+	memo: String!
+"""
+The payload of the Transaction in a raw format, typically containing the instructions and any data necessary for execution.
+"""
+	content_raw: String!
+}
+
+"""
+The `Boolean` scalar type represents `true` or `false`.
+"""
 scalar Boolean
 
-"""The `Float` scalar type represents signed double-precision fractional values as specified by [IEEE 754](http://en.wikipedia.org/wiki/IEEE_floating_point)."""
+"""
+Define the quantity and denomination of a coin.
+"""
+type Coin {
+"""
+The amount of coins.
+"""
+	amount: Int!
+"""
+The denomination of the coin.
+"""
+	denom: String!
+}
+
+"""
+Define the quantity and denomination of a coin.
+"""
+input CoinInput {
+"""
+Define the quantity and denomination of a coin.
+"""
+	amount: Int
+"""
+Define the quantity and denomination of a coin.
+"""
+	denom: String
+}
+
+union Event =GnoEvent | StorageDepositEvent | StorageUnlockEvent | UnknownEvent
+
+"""
+Transaction event's attribute to filter transaction.
+"EventAttributeInput" can be configured as a filter with a event attribute's `key` and `value`.
+"""
+input EventAttributeInput {
+"""
+Transaction event's attribute to filter transaction.
+"EventAttributeInput" can be configured as a filter with a event attribute's `key` and `value`.
+"""
+	key: String
+"""
+Transaction event's attribute to filter transaction.
+"EventAttributeInput" can be configured as a filter with a event attribute's `key` and `value`.
+"""
+	value: String
+}
+
+"""
+Transaction's event to filter transactions.
+Event can be of different types.
+"""
+input EventInput {
+"""
+Transaction's event to filter transactions.
+Event can be of different types.
+"""
+	gno_event: GnoEventInput
+"""
+Transaction's event to filter transactions.
+Event can be of different types.
+"""
+	storage_deposit_event: StorageDepositEventInput
+"""
+Transaction's event to filter transactions.
+Event can be of different types.
+"""
+	storage_unlock_event: StorageUnlockEventInput
+}
+
+"""
+filter for BankMsgSend objects
+"""
+input FilterBankMsgSend {
+"""
+filter for BankMsgSend objects
+"""
+	_and: [FilterBankMsgSend]
+"""
+filter for BankMsgSend objects
+"""
+	_or: [FilterBankMsgSend]
+"""
+filter for BankMsgSend objects
+"""
+	_not: FilterBankMsgSend
+"""
+filter for BankMsgSend objects
+"""
+	from_address: FilterString
+"""
+filter for BankMsgSend objects
+"""
+	to_address: FilterString
+"""
+filter for BankMsgSend objects
+"""
+	amount: FilterString
+}
+
+"""
+filter for Block objects
+"""
+input FilterBlock {
+"""
+filter for Block objects
+"""
+	_and: [FilterBlock]
+"""
+filter for Block objects
+"""
+	_or: [FilterBlock]
+"""
+filter for Block objects
+"""
+	_not: FilterBlock
+"""
+filter for Block objects
+"""
+	hash: FilterString
+"""
+filter for Block objects
+"""
+	height: FilterInt
+"""
+filter for Block objects
+"""
+	version: FilterString
+"""
+filter for Block objects
+"""
+	chain_id: FilterString
+"""
+filter for Block objects
+"""
+	time: FilterTime
+"""
+filter for Block objects
+"""
+	num_txs: FilterInt
+"""
+filter for Block objects
+"""
+	total_txs: FilterInt
+"""
+filter for Block objects
+"""
+	app_version: FilterString
+"""
+filter for Block objects
+"""
+	last_block_hash: FilterString
+"""
+filter for Block objects
+"""
+	last_commit_hash: FilterString
+"""
+filter for Block objects
+"""
+	validators_hash: FilterString
+"""
+filter for Block objects
+"""
+	next_validators_hash: FilterString
+"""
+filter for Block objects
+"""
+	consensus_hash: FilterString
+"""
+filter for Block objects
+"""
+	app_hash: FilterString
+"""
+filter for Block objects
+"""
+	last_results_hash: FilterString
+"""
+filter for Block objects
+"""
+	proposer_address_raw: FilterString
+"""
+filter for Block objects
+"""
+	txs: NestedFilterBlockTransaction
+}
+
+"""
+filter for BlockTransaction objects
+"""
+input FilterBlockTransaction {
+"""
+filter for BlockTransaction objects
+"""
+	_and: [FilterBlockTransaction]
+"""
+filter for BlockTransaction objects
+"""
+	_or: [FilterBlockTransaction]
+"""
+filter for BlockTransaction objects
+"""
+	_not: FilterBlockTransaction
+"""
+filter for BlockTransaction objects
+"""
+	hash: FilterString
+"""
+filter for BlockTransaction objects
+"""
+	fee: NestedFilterTxFee
+"""
+filter for BlockTransaction objects
+"""
+	memo: FilterString
+}
+
+"""
+Filter type for boolean fields. All added filters here are processed as AND operators.
+"""
+input FilterBoolean {
+"""
+Filter type for boolean fields. All added filters here are processed as AND operators.
+"""
+	exists: Boolean
+"""
+Filter type for boolean fields. All added filters here are processed as AND operators.
+"""
+	eq: Boolean
+}
+
+"""
+filter for Coin objects
+"""
+input FilterCoin {
+"""
+filter for Coin objects
+"""
+	_and: [FilterCoin]
+"""
+filter for Coin objects
+"""
+	_or: [FilterCoin]
+"""
+filter for Coin objects
+"""
+	_not: FilterCoin
+"""
+filter for Coin objects
+"""
+	amount: FilterInt
+"""
+filter for Coin objects
+"""
+	denom: FilterString
+}
+
+"""
+filter for Event objects
+"""
+input FilterEvent {
+"""
+filter for Event objects
+"""
+	_and: [FilterEvent]
+"""
+filter for Event objects
+"""
+	_or: [FilterEvent]
+"""
+filter for Event objects
+"""
+	_not: FilterEvent
+"""
+filter for Event objects
+"""
+	GnoEvent: NestedFilterGnoEvent
+"""
+filter for Event objects
+"""
+	StorageDepositEvent: NestedFilterStorageDepositEvent
+"""
+filter for Event objects
+"""
+	StorageUnlockEvent: NestedFilterStorageUnlockEvent
+"""
+filter for Event objects
+"""
+	UnknownEvent: NestedFilterUnknownEvent
+}
+
+"""
+filter for GnoEvent objects
+"""
+input FilterGnoEvent {
+"""
+filter for GnoEvent objects
+"""
+	_and: [FilterGnoEvent]
+"""
+filter for GnoEvent objects
+"""
+	_or: [FilterGnoEvent]
+"""
+filter for GnoEvent objects
+"""
+	_not: FilterGnoEvent
+"""
+filter for GnoEvent objects
+"""
+	type: FilterString
+"""
+filter for GnoEvent objects
+"""
+	pkg_path: FilterString
+"""
+filter for GnoEvent objects
+"""
+	attrs: NestedFilterGnoEventAttribute
+}
+
+"""
+filter for GnoEventAttribute objects
+"""
+input FilterGnoEventAttribute {
+"""
+filter for GnoEventAttribute objects
+"""
+	_and: [FilterGnoEventAttribute]
+"""
+filter for GnoEventAttribute objects
+"""
+	_or: [FilterGnoEventAttribute]
+"""
+filter for GnoEventAttribute objects
+"""
+	_not: FilterGnoEventAttribute
+"""
+filter for GnoEventAttribute objects
+"""
+	key: FilterString
+"""
+filter for GnoEventAttribute objects
+"""
+	value: FilterString
+}
+
+"""
+Filter type for number fields. All added filters here are processed as AND operators.
+"""
+input FilterInt {
+"""
+Filter type for number fields. All added filters here are processed as AND operators.
+"""
+	exists: Boolean
+"""
+Filter type for number fields. All added filters here are processed as AND operators.
+"""
+	eq: Int
+"""
+Filter type for number fields. All added filters here are processed as AND operators.
+"""
+	gt: Int
+"""
+Filter type for number fields. All added filters here are processed as AND operators.
+"""
+	lt: Int
+}
+
+"""
+filter for MemFile objects
+"""
+input FilterMemFile {
+"""
+filter for MemFile objects
+"""
+	_and: [FilterMemFile]
+"""
+filter for MemFile objects
+"""
+	_or: [FilterMemFile]
+"""
+filter for MemFile objects
+"""
+	_not: FilterMemFile
+"""
+filter for MemFile objects
+"""
+	name: FilterString
+"""
+filter for MemFile objects
+"""
+	body: FilterString
+}
+
+"""
+filter for MemPackage objects
+"""
+input FilterMemPackage {
+"""
+filter for MemPackage objects
+"""
+	_and: [FilterMemPackage]
+"""
+filter for MemPackage objects
+"""
+	_or: [FilterMemPackage]
+"""
+filter for MemPackage objects
+"""
+	_not: FilterMemPackage
+"""
+filter for MemPackage objects
+"""
+	name: FilterString
+"""
+filter for MemPackage objects
+"""
+	path: FilterString
+"""
+filter for MemPackage objects
+"""
+	files: NestedFilterMemFile
+}
+
+"""
+filter for MessageValue objects
+"""
+input FilterMessageValue {
+"""
+filter for MessageValue objects
+"""
+	_and: [FilterMessageValue]
+"""
+filter for MessageValue objects
+"""
+	_or: [FilterMessageValue]
+"""
+filter for MessageValue objects
+"""
+	_not: FilterMessageValue
+"""
+filter for MessageValue objects
+"""
+	BankMsgSend: NestedFilterBankMsgSend
+"""
+filter for MessageValue objects
+"""
+	MsgCall: NestedFilterMsgCall
+"""
+filter for MessageValue objects
+"""
+	MsgAddPackage: NestedFilterMsgAddPackage
+"""
+filter for MessageValue objects
+"""
+	MsgRun: NestedFilterMsgRun
+}
+
+"""
+filter for MsgAddPackage objects
+"""
+input FilterMsgAddPackage {
+"""
+filter for MsgAddPackage objects
+"""
+	_and: [FilterMsgAddPackage]
+"""
+filter for MsgAddPackage objects
+"""
+	_or: [FilterMsgAddPackage]
+"""
+filter for MsgAddPackage objects
+"""
+	_not: FilterMsgAddPackage
+"""
+filter for MsgAddPackage objects
+"""
+	creator: FilterString
+"""
+filter for MsgAddPackage objects
+"""
+	package: NestedFilterMemPackage
+"""
+filter for MsgAddPackage objects
+"""
+	deposit: FilterString
+"""
+filter for MsgAddPackage objects
+"""
+	send: FilterString
+"""
+filter for MsgAddPackage objects
+"""
+	max_deposit: FilterString
+}
+
+"""
+filter for MsgCall objects
+"""
+input FilterMsgCall {
+"""
+filter for MsgCall objects
+"""
+	_and: [FilterMsgCall]
+"""
+filter for MsgCall objects
+"""
+	_or: [FilterMsgCall]
+"""
+filter for MsgCall objects
+"""
+	_not: FilterMsgCall
+"""
+filter for MsgCall objects
+"""
+	caller: FilterString
+"""
+filter for MsgCall objects
+"""
+	send: FilterString
+"""
+filter for MsgCall objects
+"""
+	pkg_path: FilterString
+"""
+filter for MsgCall objects
+"""
+	func: FilterString
+"""
+filter for MsgCall objects
+"""
+	args: FilterString
+"""
+filter for MsgCall objects
+"""
+	max_deposit: FilterString
+}
+
+"""
+filter for MsgRun objects
+"""
+input FilterMsgRun {
+"""
+filter for MsgRun objects
+"""
+	_and: [FilterMsgRun]
+"""
+filter for MsgRun objects
+"""
+	_or: [FilterMsgRun]
+"""
+filter for MsgRun objects
+"""
+	_not: FilterMsgRun
+"""
+filter for MsgRun objects
+"""
+	caller: FilterString
+"""
+filter for MsgRun objects
+"""
+	send: FilterString
+"""
+filter for MsgRun objects
+"""
+	package: NestedFilterMemPackage
+"""
+filter for MsgRun objects
+"""
+	max_deposit: FilterString
+}
+
+"""
+filter for StorageDepositEvent objects
+"""
+input FilterStorageDepositEvent {
+"""
+filter for StorageDepositEvent objects
+"""
+	_and: [FilterStorageDepositEvent]
+"""
+filter for StorageDepositEvent objects
+"""
+	_or: [FilterStorageDepositEvent]
+"""
+filter for StorageDepositEvent objects
+"""
+	_not: FilterStorageDepositEvent
+"""
+filter for StorageDepositEvent objects
+"""
+	type: FilterString
+"""
+filter for StorageDepositEvent objects
+"""
+	bytes_delta: FilterInt
+"""
+filter for StorageDepositEvent objects
+"""
+	fee_delta: NestedFilterCoin
+"""
+filter for StorageDepositEvent objects
+"""
+	pkg_path: FilterString
+}
+
+"""
+filter for StorageUnlockEvent objects
+"""
+input FilterStorageUnlockEvent {
+"""
+filter for StorageUnlockEvent objects
+"""
+	_and: [FilterStorageUnlockEvent]
+"""
+filter for StorageUnlockEvent objects
+"""
+	_or: [FilterStorageUnlockEvent]
+"""
+filter for StorageUnlockEvent objects
+"""
+	_not: FilterStorageUnlockEvent
+"""
+filter for StorageUnlockEvent objects
+"""
+	type: FilterString
+"""
+filter for StorageUnlockEvent objects
+"""
+	bytes_delta: FilterInt
+"""
+filter for StorageUnlockEvent objects
+"""
+	fee_refund: NestedFilterCoin
+"""
+filter for StorageUnlockEvent objects
+"""
+	pkg_path: FilterString
+}
+
+"""
+Filter type for string fields. It contains a variety of filter types for string types. All added filters here are processed as AND operators.
+"""
+input FilterString {
+"""
+Filter type for string fields. It contains a variety of filter types for string types. All added filters here are processed as AND operators.
+"""
+	exists: Boolean
+"""
+Filter type for string fields. It contains a variety of filter types for string types. All added filters here are processed as AND operators.
+"""
+	eq: String
+"""
+Filter type for string fields. It contains a variety of filter types for string types. All added filters here are processed as AND operators.
+"""
+	like: String
+}
+
+"""
+Filter type for time fields. All added filters here are processed as AND operators.
+"""
+input FilterTime {
+"""
+Filter type for time fields. All added filters here are processed as AND operators.
+"""
+	exists: Boolean
+"""
+Filter type for time fields. All added filters here are processed as AND operators.
+"""
+	eq: Time
+"""
+Filter type for time fields. All added filters here are processed as AND operators.
+"""
+	before: Time
+"""
+Filter type for time fields. All added filters here are processed as AND operators.
+"""
+	after: Time
+}
+
+"""
+filter for Transaction objects
+"""
+input FilterTransaction {
+"""
+filter for Transaction objects
+"""
+	_and: [FilterTransaction]
+"""
+filter for Transaction objects
+"""
+	_or: [FilterTransaction]
+"""
+filter for Transaction objects
+"""
+	_not: FilterTransaction
+"""
+filter for Transaction objects
+"""
+	index: FilterInt
+"""
+filter for Transaction objects
+"""
+	hash: FilterString
+"""
+filter for Transaction objects
+"""
+	success: FilterBoolean
+"""
+filter for Transaction objects
+"""
+	block_height: FilterInt
+"""
+filter for Transaction objects
+"""
+	gas_wanted: FilterInt
+"""
+filter for Transaction objects
+"""
+	gas_used: FilterInt
+"""
+filter for Transaction objects
+"""
+	gas_fee: NestedFilterCoin
+"""
+filter for Transaction objects
+"""
+	messages: NestedFilterTransactionMessage
+"""
+filter for Transaction objects
+"""
+	memo: FilterString
+"""
+filter for Transaction objects
+"""
+	response: NestedFilterTransactionResponse
+}
+
+"""
+filter for TransactionMessage objects
+"""
+input FilterTransactionMessage {
+"""
+filter for TransactionMessage objects
+"""
+	_and: [FilterTransactionMessage]
+"""
+filter for TransactionMessage objects
+"""
+	_or: [FilterTransactionMessage]
+"""
+filter for TransactionMessage objects
+"""
+	_not: FilterTransactionMessage
+"""
+filter for TransactionMessage objects
+"""
+	typeUrl: FilterString
+"""
+filter for TransactionMessage objects
+"""
+	route: FilterString
+"""
+filter for TransactionMessage objects
+"""
+	value: NestedFilterMessageValue
+}
+
+"""
+filter for TransactionResponse objects
+"""
+input FilterTransactionResponse {
+"""
+filter for TransactionResponse objects
+"""
+	_and: [FilterTransactionResponse]
+"""
+filter for TransactionResponse objects
+"""
+	_or: [FilterTransactionResponse]
+"""
+filter for TransactionResponse objects
+"""
+	_not: FilterTransactionResponse
+"""
+filter for TransactionResponse objects
+"""
+	log: FilterString
+"""
+filter for TransactionResponse objects
+"""
+	info: FilterString
+"""
+filter for TransactionResponse objects
+"""
+	error: FilterString
+"""
+filter for TransactionResponse objects
+"""
+	data: FilterString
+"""
+filter for TransactionResponse objects
+"""
+	events: NestedFilterEvent
+}
+
+"""
+filter for TxFee objects
+"""
+input FilterTxFee {
+"""
+filter for TxFee objects
+"""
+	_and: [FilterTxFee]
+"""
+filter for TxFee objects
+"""
+	_or: [FilterTxFee]
+"""
+filter for TxFee objects
+"""
+	_not: FilterTxFee
+"""
+filter for TxFee objects
+"""
+	gas_wanted: FilterInt
+"""
+filter for TxFee objects
+"""
+	gas_fee: NestedFilterCoin
+}
+
+"""
+filter for UnknownEvent objects
+"""
+input FilterUnknownEvent {
+"""
+filter for UnknownEvent objects
+"""
+	_and: [FilterUnknownEvent]
+"""
+filter for UnknownEvent objects
+"""
+	_or: [FilterUnknownEvent]
+"""
+filter for UnknownEvent objects
+"""
+	_not: FilterUnknownEvent
+"""
+filter for UnknownEvent objects
+"""
+	value: FilterString
+}
+
+enum FilterableExtra {
+"""
+Get minimum and maximum value used on all the filters for this field.
+Useful when you need to do a range query for performance reasons.
+"""
+	MINMAX
+}
+
+"""
+The `Float` scalar type represents signed double-precision fractional values as specified by [IEEE 754](http://en.wikipedia.org/wiki/IEEE_floating_point).
+"""
 scalar Float
 
-"""The `ID` scalar type represents a unique identifier, often used to refetch an object or as key for a cache. The ID type appears in a JSON response as a String; however, it is not intended to be human-readable. When expected as an input type, any string (such as "4") or integer (such as 4) input value will be accepted as an ID."""
+"""
+`GnoEvent` is the event information exported by the Gno VM.
+It has `type`, `pkg_path`, `func`, and `attrs`.
+"""
+type GnoEvent {
+"""
+`type` is the type of transaction event emitted.
+"""
+	type: String!
+"""
+`pkg_path` is the path to the package that emitted the event.
+"""
+	pkg_path: String!
+"""
+`attrs` is the event's attribute information.
+"""
+	attrs: [GnoEventAttribute!]
+}
+
+"""
+`GnoEventAttribute` is the attributes that the event has.
+It has `key` and `value`.
+"""
+type GnoEventAttribute {
+"""
+The key of the event attribute.
+"""
+	key: String!
+"""
+The value of the event attribute.
+"""
+	value: String!
+}
+
+"""
+Transaction's event of type of GnoEvent to filter transactions.
+"GnoEventInput" can be configured as a filter with a transaction event's `type` and `pkg_path` and `func`, and `attrs`.
+"""
+input GnoEventInput {
+"""
+Transaction's event of type of GnoEvent to filter transactions.
+"GnoEventInput" can be configured as a filter with a transaction event's `type` and `pkg_path` and `func`, and `attrs`.
+"""
+	type: String
+"""
+Transaction's event of type of GnoEvent to filter transactions.
+"GnoEventInput" can be configured as a filter with a transaction event's `type` and `pkg_path` and `func`, and `attrs`.
+"""
+	pkg_path: String
+"""
+Transaction's event of type of GnoEvent to filter transactions.
+"GnoEventInput" can be configured as a filter with a transaction event's `type` and `pkg_path` and `func`, and `attrs`.
+"""
+	attrs: [EventAttributeInput!]
+}
+
+"""
+The `ID` scalar type represents a unique identifier, often used to refetch an object or as key for a cache. The ID type appears in a JSON response as a String; however, it is not intended to be human-readable. When expected as an input type, any string (such as "4") or integer (such as 4) input value will be accepted as an ID.
+"""
 scalar ID
 
-"""The `Int` scalar type represents non-fractional signed whole numeric values. Int can represent values between -(2^31) and 2^31 - 1."""
+"""
+The `Int` scalar type represents non-fractional signed whole numeric values. Int can represent values between -(2^31) and 2^31 - 1.
+"""
 scalar Int
 
-"""`MemFile` is the metadata information tied to a single gno package / realm file"""
+"""
+`MemFile` is the metadata information tied to a single gno package / realm file
+"""
 type MemFile {
-"""the name of the source file."""
+"""
+the name of the source file.
+"""
 	name: String!
-"""the content of the source file."""
+"""
+the content of the source file.
+"""
 	body: String!
 }
 
-"""`MemFileInput` is the metadata information tied to a single gno package / realm file."""
+"""
+`MemFileInput` is the metadata information tied to a single gno package / realm file.
+"""
 input MemFileInput {
-"""`MemFileInput` is the metadata information tied to a single gno package / realm file."""
+"""
+`MemFileInput` is the metadata information tied to a single gno package / realm file.
+"""
 	name: String
-"""`MemFileInput` is the metadata information tied to a single gno package / realm file."""
+"""
+`MemFileInput` is the metadata information tied to a single gno package / realm file.
+"""
 	body: String
 }
 
-"""`MemPackage` is the metadata information tied to package / realm deployment."""
+"""
+`MemPackage` is the metadata information tied to package / realm deployment.
+"""
 type MemPackage {
-"""the name of the package."""
+"""
+the name of the package.
+"""
 	name: String!
-"""the gno path of the package."""
+"""
+the gno path of the package.
+"""
 	path: String!
-"""the associated package gno source."""
+"""
+the associated package gno source.
+"""
 	files: [MemFile!]
 }
 
-"""`MemPackageInput` represents a package stored in memory."""
+"""
+`MemPackageInput` represents a package stored in memory.
+"""
 input MemPackageInput {
-"""`MemPackageInput` represents a package stored in memory."""
+"""
+`MemPackageInput` represents a package stored in memory.
+"""
 	name: String
-"""`MemPackageInput` represents a package stored in memory."""
+"""
+`MemPackageInput` represents a package stored in memory.
+"""
 	path: String
-"""`MemPackageInput` represents a package stored in memory."""
+"""
+`MemPackageInput` represents a package stored in memory.
+"""
 	files: [MemFileInput]
 }
 
-"""`MessageRoute` is route type of the transactional message.
-`MessageRoute` has the values of vm and bank."""
+"""
+`MessageRoute` is route type of the transactional message.
+`MessageRoute` has the values of vm and bank.
+"""
 enum MessageRoute {
 	vm
 	bank
 }
 
-"""`MessageType` is message type of the transaction.
-`MessageType` has the values `send`, `exec`, `add_package`, and `run`."""
+"""
+`MessageType` is message type of the transaction.
+`MessageType` has the values `send`, `exec`, `add_package`, and `run`.
+"""
 enum MessageType {
-"""The route value for this message type is `bank`, and the value for transactional messages is `BankMsgSend`.
-This is a transaction message used when sending native tokens."""
+"""
+The route value for this message type is `bank`, and the value for transactional messages is `BankMsgSend`.
+This is a transaction message used when sending native tokens.
+"""
 	send
-"""The route value for this message type is `vm`, and the value for transactional messages is `MsgCall`.
-This is a transaction message that executes a function in realm or package that is deployed in the GNO chain."""
+"""
+The route value for this message type is `vm`, and the value for transactional messages is `MsgCall`.
+This is a transaction message that executes a function in realm or package that is deployed in the GNO chain.
+"""
 	exec
-"""The route value for this message type is `vm`, and the value for transactional messages is `MsgAddPackage`.
-This is a transactional message that adds a package to the GNO chain."""
+"""
+The route value for this message type is `vm`, and the value for transactional messages is `MsgAddPackage`.
+This is a transactional message that adds a package to the GNO chain.
+"""
 	add_package
-"""The route value for this message type is `vm`, and the value for transactional messages is `MsgRun`.
-This is a transactional message that executes an arbitrary Gno-coded TX message."""
+"""
+The route value for this message type is `vm`, and the value for transactional messages is `MsgRun`.
+This is a transactional message that executes an arbitrary Gno-coded TX message.
+"""
 	run
 }
 
 union MessageValue =BankMsgSend | MsgCall | MsgAddPackage | MsgRun | UnexpectedMessage
 
-"""`MsgAddPackage` is a message with a message router of `vm` and a message type of `add_package`.
-`MsgAddPackage` is the package deployment tx message."""
+"""
+`MsgAddPackage` is a message with a message router of `vm` and a message type of `add_package`.
+`MsgAddPackage` is the package deployment tx message.
+"""
 type MsgAddPackage {
-"""the bech32 address of the package deployer.
-ex) `g1jg8mtutu9khhfwc4nxmuhcpftf0pajdhfvsqf5`"""
+"""
+the bech32 address of the package deployer.
+ex) `g1jg8mtutu9khhfwc4nxmuhcpftf0pajdhfvsqf5`
+"""
 	creator: String!
-"""the package being deployed."""
+"""
+the package being deployed.
+"""
 	package: MemPackage!
-"""the amount of funds to be deposited at deployment, if any ("<amount><denomination>").
-ex) `1000000ugnot`"""
-	deposit: String!
+"""
+the amount of funds to be deposited at deployment, if any ("<amount><denomination>").
+ex) `1000000ugnot`
+"""
+	deposit: String! @deprecated(reason: "Use `send` instead.")
+"""
+the amount of funds to be deposited at deployment, if any ("<amount><denomination>").
+ex) `1000000ugnot`
+"""
+	send: String!
+"""
+the maximum amount of funds to be deposited at deployment used for storage, if any ("<amount><denomination>").
+ex) `1000000ugnot`
+"""
+	max_deposit: String!
 }
 
-"""`MsgAddPackageInput` represents input parameters required when the message type is `add_package`."""
+"""
+`MsgAddPackageInput` represents input parameters required when the message type is `add_package`.
+"""
 input MsgAddPackageInput {
-"""`MsgAddPackageInput` represents input parameters required when the message type is `add_package`."""
+"""
+`MsgAddPackageInput` represents input parameters required when the message type is `add_package`.
+"""
 	creator: String
-"""`MsgAddPackageInput` represents input parameters required when the message type is `add_package`."""
+"""
+`MsgAddPackageInput` represents input parameters required when the message type is `add_package`.
+"""
 	package: MemPackageInput
-"""`MsgAddPackageInput` represents input parameters required when the message type is `add_package`."""
+"""
+`MsgAddPackageInput` represents input parameters required when the message type is `add_package`.
+"""
 	deposit: AmountInput
 }
 
-"""`MsgCall` is a message with a message router of `vm` and a message type of `exec`.
-`MsgCall` is the method invocation tx message."""
+"""
+`MsgCall` is a message with a message router of `vm` and a message type of `exec`.
+`MsgCall` is the method invocation tx message.
+"""
 type MsgCall {
-"""the bech32 address of the function caller.
-ex) `g1jg8mtutu9khhfwc4nxmuhcpftf0pajdhfvsqf5`"""
+"""
+the bech32 address of the function caller.
+ex) `g1jg8mtutu9khhfwc4nxmuhcpftf0pajdhfvsqf5`
+"""
 	caller: String!
-"""the amount of funds to be deposited to the package, if any ("<amount><denomination>").
-ex) `1000000ugnot`"""
+"""
+the amount of funds to be deposited to the package, if any ("<amount><denomination>").
+ex) `1000000ugnot`
+"""
 	send: String!
-"""the gno package path."""
+"""
+the gno package path.
+"""
 	pkg_path: String!
-"""the function name being invoked."""
+"""
+the function name being invoked.
+"""
 	func: String!
-"""`args` are the arguments passed to the executed function."""
+"""
+`args` are the arguments passed to the executed function.
+"""
 	args: [String!]
+"""
+the maximum amount of funds to be deposited used for storage, if any ("<amount><denomination>").
+ex) `1000000ugnot`
+"""
+	max_deposit: String!
 }
 
-"""`MsgCallInput` represents input parameters required when the message type is `exec`."""
+"""
+`MsgCallInput` represents input parameters required when the message type is `exec`.
+"""
 input MsgCallInput {
-"""`MsgCallInput` represents input parameters required when the message type is `exec`."""
+"""
+`MsgCallInput` represents input parameters required when the message type is `exec`.
+"""
 	caller: String
-"""`MsgCallInput` represents input parameters required when the message type is `exec`."""
+"""
+`MsgCallInput` represents input parameters required when the message type is `exec`.
+"""
 	send: AmountInput
-"""`MsgCallInput` represents input parameters required when the message type is `exec`."""
+"""
+`MsgCallInput` represents input parameters required when the message type is `exec`.
+"""
 	pkg_path: String
-"""`MsgCallInput` represents input parameters required when the message type is `exec`."""
+"""
+`MsgCallInput` represents input parameters required when the message type is `exec`.
+"""
 	func: String
-"""`MsgCallInput` represents input parameters required when the message type is `exec`."""
+"""
+`MsgCallInput` represents input parameters required when the message type is `exec`.
+"""
 	args: [String!]
 }
 
-"""`MsgRun` is a message with a message router of `vm` and a message type of `run`.
-`MsgRun is the execute arbitrary Gno code tx message`."""
+"""
+`MsgRun` is a message with a message router of `vm` and a message type of `run`.
+`MsgRun is the execute arbitrary Gno code tx message`.
+"""
 type MsgRun {
-"""the bech32 address of the function caller.
-ex) `g1jg8mtutu9khhfwc4nxmuhcpftf0pajdhfvsqf5`"""
+"""
+the bech32 address of the function caller.
+ex) `g1jg8mtutu9khhfwc4nxmuhcpftf0pajdhfvsqf5`
+"""
 	caller: String!
-"""the amount of funds to be deposited to the package, if any ("<amount><denomination>").
-ex) `1000000ugnot`"""
+"""
+the amount of funds to be deposited to the package, if any ("<amount><denomination>").
+ex) `1000000ugnot`
+"""
 	send: String!
-"""the package being executed."""
+"""
+the package being executed.
+"""
 	package: MemPackage!
+"""
+the maximum amount of funds to be deposited used for storage, if any ("<amount><denomination>").
+ex) `1000000ugnot`
+"""
+	max_deposit: String!
 }
 
-"""`MsgRunInput` represents input parameters required when the message type is `run`."""
+"""
+`MsgRunInput` represents input parameters required when the message type is `run`.
+"""
 input MsgRunInput {
-"""`MsgRunInput` represents input parameters required when the message type is `run`."""
+"""
+`MsgRunInput` represents input parameters required when the message type is `run`.
+"""
 	caller: String
-"""`MsgRunInput` represents input parameters required when the message type is `run`."""
+"""
+`MsgRunInput` represents input parameters required when the message type is `run`.
+"""
 	send: AmountInput
-"""`MsgRunInput` represents input parameters required when the message type is `run`."""
+"""
+`MsgRunInput` represents input parameters required when the message type is `run`.
+"""
 	package: MemPackageInput
 }
 
-"""Root Query type to fetch data about Blocks and Transactions based on filters or retrieve the latest block height."""
-type Query {
-"""Retrieves a list of Transactions that match the given filter criteria. If the result is incomplete due to errors, both partial results and errors are returned."""
-	transactions(
-		filter: TransactionFilter!
-	): [Transaction!]
-"""Fetches Blocks matching the specified filter criteria. Incomplete results due to errors return both the partial Blocks and the associated errors."""
-	blocks(
-		filter: BlockFilter!
-	): [Block!]
-"""Returns the height of the most recently processed Block by the blockchain indexer, indicating the current length of the blockchain."""
-	latestBlockHeight: Int!
+"""
+filter for BankMsgSend objects
+"""
+input NestedFilterBankMsgSend {
+"""
+filter for BankMsgSend objects
+"""
+	_and: [NestedFilterBankMsgSend]
+"""
+filter for BankMsgSend objects
+"""
+	_or: [NestedFilterBankMsgSend]
+"""
+filter for BankMsgSend objects
+"""
+	_not: NestedFilterBankMsgSend
+"""
+filter for BankMsgSend objects
+"""
+	from_address: FilterString
+"""
+filter for BankMsgSend objects
+"""
+	to_address: FilterString
+"""
+filter for BankMsgSend objects
+"""
+	amount: FilterString
 }
 
-"""The `String`scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text."""
+"""
+filter for BlockTransaction objects
+"""
+input NestedFilterBlockTransaction {
+"""
+filter for BlockTransaction objects
+"""
+	_and: [NestedFilterBlockTransaction]
+"""
+filter for BlockTransaction objects
+"""
+	_or: [NestedFilterBlockTransaction]
+"""
+filter for BlockTransaction objects
+"""
+	_not: NestedFilterBlockTransaction
+"""
+filter for BlockTransaction objects
+"""
+	hash: FilterString
+"""
+filter for BlockTransaction objects
+"""
+	fee: NestedFilterTxFee
+"""
+filter for BlockTransaction objects
+"""
+	memo: FilterString
+}
+
+"""
+filter for Coin objects
+"""
+input NestedFilterCoin {
+"""
+filter for Coin objects
+"""
+	_and: [NestedFilterCoin]
+"""
+filter for Coin objects
+"""
+	_or: [NestedFilterCoin]
+"""
+filter for Coin objects
+"""
+	_not: NestedFilterCoin
+"""
+filter for Coin objects
+"""
+	amount: FilterInt
+"""
+filter for Coin objects
+"""
+	denom: FilterString
+}
+
+"""
+filter for Event objects
+"""
+input NestedFilterEvent {
+"""
+filter for Event objects
+"""
+	_and: [NestedFilterEvent]
+"""
+filter for Event objects
+"""
+	_or: [NestedFilterEvent]
+"""
+filter for Event objects
+"""
+	_not: NestedFilterEvent
+"""
+filter for Event objects
+"""
+	GnoEvent: NestedFilterGnoEvent
+"""
+filter for Event objects
+"""
+	StorageDepositEvent: NestedFilterStorageDepositEvent
+"""
+filter for Event objects
+"""
+	StorageUnlockEvent: NestedFilterStorageUnlockEvent
+"""
+filter for Event objects
+"""
+	UnknownEvent: NestedFilterUnknownEvent
+}
+
+"""
+filter for GnoEvent objects
+"""
+input NestedFilterGnoEvent {
+"""
+filter for GnoEvent objects
+"""
+	_and: [NestedFilterGnoEvent]
+"""
+filter for GnoEvent objects
+"""
+	_or: [NestedFilterGnoEvent]
+"""
+filter for GnoEvent objects
+"""
+	_not: NestedFilterGnoEvent
+"""
+filter for GnoEvent objects
+"""
+	type: FilterString
+"""
+filter for GnoEvent objects
+"""
+	pkg_path: FilterString
+"""
+filter for GnoEvent objects
+"""
+	attrs: NestedFilterGnoEventAttribute
+}
+
+"""
+filter for GnoEventAttribute objects
+"""
+input NestedFilterGnoEventAttribute {
+"""
+filter for GnoEventAttribute objects
+"""
+	_and: [NestedFilterGnoEventAttribute]
+"""
+filter for GnoEventAttribute objects
+"""
+	_or: [NestedFilterGnoEventAttribute]
+"""
+filter for GnoEventAttribute objects
+"""
+	_not: NestedFilterGnoEventAttribute
+"""
+filter for GnoEventAttribute objects
+"""
+	key: FilterString
+"""
+filter for GnoEventAttribute objects
+"""
+	value: FilterString
+}
+
+"""
+filter for MemFile objects
+"""
+input NestedFilterMemFile {
+"""
+filter for MemFile objects
+"""
+	_and: [NestedFilterMemFile]
+"""
+filter for MemFile objects
+"""
+	_or: [NestedFilterMemFile]
+"""
+filter for MemFile objects
+"""
+	_not: NestedFilterMemFile
+"""
+filter for MemFile objects
+"""
+	name: FilterString
+"""
+filter for MemFile objects
+"""
+	body: FilterString
+}
+
+"""
+filter for MemPackage objects
+"""
+input NestedFilterMemPackage {
+"""
+filter for MemPackage objects
+"""
+	_and: [NestedFilterMemPackage]
+"""
+filter for MemPackage objects
+"""
+	_or: [NestedFilterMemPackage]
+"""
+filter for MemPackage objects
+"""
+	_not: NestedFilterMemPackage
+"""
+filter for MemPackage objects
+"""
+	name: FilterString
+"""
+filter for MemPackage objects
+"""
+	path: FilterString
+"""
+filter for MemPackage objects
+"""
+	files: NestedFilterMemFile
+}
+
+"""
+filter for MessageValue objects
+"""
+input NestedFilterMessageValue {
+"""
+filter for MessageValue objects
+"""
+	_and: [NestedFilterMessageValue]
+"""
+filter for MessageValue objects
+"""
+	_or: [NestedFilterMessageValue]
+"""
+filter for MessageValue objects
+"""
+	_not: NestedFilterMessageValue
+"""
+filter for MessageValue objects
+"""
+	BankMsgSend: NestedFilterBankMsgSend
+"""
+filter for MessageValue objects
+"""
+	MsgCall: NestedFilterMsgCall
+"""
+filter for MessageValue objects
+"""
+	MsgAddPackage: NestedFilterMsgAddPackage
+"""
+filter for MessageValue objects
+"""
+	MsgRun: NestedFilterMsgRun
+}
+
+"""
+filter for MsgAddPackage objects
+"""
+input NestedFilterMsgAddPackage {
+"""
+filter for MsgAddPackage objects
+"""
+	_and: [NestedFilterMsgAddPackage]
+"""
+filter for MsgAddPackage objects
+"""
+	_or: [NestedFilterMsgAddPackage]
+"""
+filter for MsgAddPackage objects
+"""
+	_not: NestedFilterMsgAddPackage
+"""
+filter for MsgAddPackage objects
+"""
+	creator: FilterString
+"""
+filter for MsgAddPackage objects
+"""
+	package: NestedFilterMemPackage
+"""
+filter for MsgAddPackage objects
+"""
+	deposit: FilterString
+"""
+filter for MsgAddPackage objects
+"""
+	send: FilterString
+"""
+filter for MsgAddPackage objects
+"""
+	max_deposit: FilterString
+}
+
+"""
+filter for MsgCall objects
+"""
+input NestedFilterMsgCall {
+"""
+filter for MsgCall objects
+"""
+	_and: [NestedFilterMsgCall]
+"""
+filter for MsgCall objects
+"""
+	_or: [NestedFilterMsgCall]
+"""
+filter for MsgCall objects
+"""
+	_not: NestedFilterMsgCall
+"""
+filter for MsgCall objects
+"""
+	caller: FilterString
+"""
+filter for MsgCall objects
+"""
+	send: FilterString
+"""
+filter for MsgCall objects
+"""
+	pkg_path: FilterString
+"""
+filter for MsgCall objects
+"""
+	func: FilterString
+"""
+filter for MsgCall objects
+"""
+	args: FilterString
+"""
+filter for MsgCall objects
+"""
+	max_deposit: FilterString
+}
+
+"""
+filter for MsgRun objects
+"""
+input NestedFilterMsgRun {
+"""
+filter for MsgRun objects
+"""
+	_and: [NestedFilterMsgRun]
+"""
+filter for MsgRun objects
+"""
+	_or: [NestedFilterMsgRun]
+"""
+filter for MsgRun objects
+"""
+	_not: NestedFilterMsgRun
+"""
+filter for MsgRun objects
+"""
+	caller: FilterString
+"""
+filter for MsgRun objects
+"""
+	send: FilterString
+"""
+filter for MsgRun objects
+"""
+	package: NestedFilterMemPackage
+"""
+filter for MsgRun objects
+"""
+	max_deposit: FilterString
+}
+
+"""
+filter for StorageDepositEvent objects
+"""
+input NestedFilterStorageDepositEvent {
+"""
+filter for StorageDepositEvent objects
+"""
+	_and: [NestedFilterStorageDepositEvent]
+"""
+filter for StorageDepositEvent objects
+"""
+	_or: [NestedFilterStorageDepositEvent]
+"""
+filter for StorageDepositEvent objects
+"""
+	_not: NestedFilterStorageDepositEvent
+"""
+filter for StorageDepositEvent objects
+"""
+	type: FilterString
+"""
+filter for StorageDepositEvent objects
+"""
+	bytes_delta: FilterInt
+"""
+filter for StorageDepositEvent objects
+"""
+	fee_delta: NestedFilterCoin
+"""
+filter for StorageDepositEvent objects
+"""
+	pkg_path: FilterString
+}
+
+"""
+filter for StorageUnlockEvent objects
+"""
+input NestedFilterStorageUnlockEvent {
+"""
+filter for StorageUnlockEvent objects
+"""
+	_and: [NestedFilterStorageUnlockEvent]
+"""
+filter for StorageUnlockEvent objects
+"""
+	_or: [NestedFilterStorageUnlockEvent]
+"""
+filter for StorageUnlockEvent objects
+"""
+	_not: NestedFilterStorageUnlockEvent
+"""
+filter for StorageUnlockEvent objects
+"""
+	type: FilterString
+"""
+filter for StorageUnlockEvent objects
+"""
+	bytes_delta: FilterInt
+"""
+filter for StorageUnlockEvent objects
+"""
+	fee_refund: NestedFilterCoin
+"""
+filter for StorageUnlockEvent objects
+"""
+	pkg_path: FilterString
+}
+
+"""
+filter for TransactionMessage objects
+"""
+input NestedFilterTransactionMessage {
+"""
+filter for TransactionMessage objects
+"""
+	_and: [NestedFilterTransactionMessage]
+"""
+filter for TransactionMessage objects
+"""
+	_or: [NestedFilterTransactionMessage]
+"""
+filter for TransactionMessage objects
+"""
+	_not: NestedFilterTransactionMessage
+"""
+filter for TransactionMessage objects
+"""
+	typeUrl: FilterString
+"""
+filter for TransactionMessage objects
+"""
+	route: FilterString
+"""
+filter for TransactionMessage objects
+"""
+	value: NestedFilterMessageValue
+}
+
+"""
+filter for TransactionResponse objects
+"""
+input NestedFilterTransactionResponse {
+"""
+filter for TransactionResponse objects
+"""
+	_and: [NestedFilterTransactionResponse]
+"""
+filter for TransactionResponse objects
+"""
+	_or: [NestedFilterTransactionResponse]
+"""
+filter for TransactionResponse objects
+"""
+	_not: NestedFilterTransactionResponse
+"""
+filter for TransactionResponse objects
+"""
+	log: FilterString
+"""
+filter for TransactionResponse objects
+"""
+	info: FilterString
+"""
+filter for TransactionResponse objects
+"""
+	error: FilterString
+"""
+filter for TransactionResponse objects
+"""
+	data: FilterString
+"""
+filter for TransactionResponse objects
+"""
+	events: NestedFilterEvent
+}
+
+"""
+filter for TxFee objects
+"""
+input NestedFilterTxFee {
+"""
+filter for TxFee objects
+"""
+	_and: [NestedFilterTxFee]
+"""
+filter for TxFee objects
+"""
+	_or: [NestedFilterTxFee]
+"""
+filter for TxFee objects
+"""
+	_not: NestedFilterTxFee
+"""
+filter for TxFee objects
+"""
+	gas_wanted: FilterInt
+"""
+filter for TxFee objects
+"""
+	gas_fee: NestedFilterCoin
+}
+
+"""
+filter for UnknownEvent objects
+"""
+input NestedFilterUnknownEvent {
+"""
+filter for UnknownEvent objects
+"""
+	_and: [NestedFilterUnknownEvent]
+"""
+filter for UnknownEvent objects
+"""
+	_or: [NestedFilterUnknownEvent]
+"""
+filter for UnknownEvent objects
+"""
+	_not: NestedFilterUnknownEvent
+"""
+filter for UnknownEvent objects
+"""
+	value: FilterString
+}
+
+"""
+Order defines the output order for hte method, It can be in DESC (descending) or ASC (ascending) order.
+"""
+enum Order {
+	ASC
+	DESC
+}
+
+"""
+Root Query type to fetch data about Blocks and Transactions based on filters or retrieve the latest block height.
+"""
+type Query {
+"""
+Retrieves a list of Transactions that match the given filter criteria. If the result is incomplete due to errors, both partial results and errors are returned.
+"""
+	transactions(
+		filter: TransactionFilter!
+	): [Transaction!] @deprecated(reason: "Use `getTransactions` instead.")
+"""
+Fetches Blocks matching the specified filter criteria. Incomplete results due to errors return both the partial Blocks and the associated errors.
+"""
+	blocks(
+		filter: BlockFilter!
+	): [Block!] @deprecated(reason: "Use `getBlocks` instead.")
+"""
+Returns the height of the most recently processed Block by the blockchain indexer, indicating the current length of the blockchain.
+"""
+	latestBlockHeight: Int!
+"""
+Fetches Blocks matching the specified where criteria. 
+Incomplete results due to errors return both the partial Blocks and 
+the associated errors.
+"""
+	getBlocks(
+		where: FilterBlock!
+		order: BlockOrder
+	): [Block!]
+"""
+Retrieves a list of Transactions that match the given 
+where criteria. If the result is incomplete due to errors, both partial
+results and errors are returned.
+"""
+	getTransactions(
+		where: FilterTransaction!
+		order: TransactionOrder
+	): [Transaction!]
+}
+
+"""
+`StorageDepositEvent` is emitted when a storage deposit fee is locked.
+It has `type`, `bytes_delta`, `fee_delta`, and `pkg_path`.
+"""
+type StorageDepositEvent {
+"""
+`type` is the type of transaction event emitted.
+"""
+	type: String!
+"""
+`bytes_delta` is the amount of bytes used.
+"""
+	bytes_delta: Int!
+"""
+`fee_delta` is the amount of coins paid in fees.
+"""
+	fee_delta: Coin!
+"""
+`pkg_path` is the path to the package that emitted the event.
+"""
+	pkg_path: String!
+}
+
+"""
+Transaction's event of type of StorageDepositEvent to filter transactions.
+"StorageDepositEventInput" can be configured as a filter with a transaction event's `type`, `bytes_delta`, `fee_delta` and `pkg_path`.
+"""
+input StorageDepositEventInput {
+"""
+Transaction's event of type of StorageDepositEvent to filter transactions.
+"StorageDepositEventInput" can be configured as a filter with a transaction event's `type`, `bytes_delta`, `fee_delta` and `pkg_path`.
+"""
+	type: String
+"""
+Transaction's event of type of StorageDepositEvent to filter transactions.
+"StorageDepositEventInput" can be configured as a filter with a transaction event's `type`, `bytes_delta`, `fee_delta` and `pkg_path`.
+"""
+	bytes_delta: Int
+"""
+Transaction's event of type of StorageDepositEvent to filter transactions.
+"StorageDepositEventInput" can be configured as a filter with a transaction event's `type`, `bytes_delta`, `fee_delta` and `pkg_path`.
+"""
+	fee_delta: CoinInput
+"""
+Transaction's event of type of StorageDepositEvent to filter transactions.
+"StorageDepositEventInput" can be configured as a filter with a transaction event's `type`, `bytes_delta`, `fee_delta` and `pkg_path`.
+"""
+	pkg_path: String
+}
+
+"""
+`StorageUnlockEvent` is emitted when a storage deposit fee is unlocked.
+It has `type`, `bytes_delta`, `fee_refund`, and `pkg_path`.
+"""
+type StorageUnlockEvent {
+"""
+`type` is the type of transaction event emitted.
+"""
+	type: String!
+"""
+`bytes_delta` is the amount of bytes released.
+"""
+	bytes_delta: Int!
+"""
+`fee_refund` is the amount of coins refunded in fees.
+"""
+	fee_refund: Coin!
+"""
+`pkg_path` is the path to the package that emitted the event.
+"""
+	pkg_path: String!
+}
+
+"""
+Transaction's event of type of StorageUnlockEvent to filter transactions.
+"StorageUnlockEventInput" can be configured as a filter with a transaction event's `type`, `bytes_delta`, `fee_refund` and `pkg_path`.
+"""
+input StorageUnlockEventInput {
+"""
+Transaction's event of type of StorageUnlockEvent to filter transactions.
+"StorageUnlockEventInput" can be configured as a filter with a transaction event's `type`, `bytes_delta`, `fee_refund` and `pkg_path`.
+"""
+	type: String
+"""
+Transaction's event of type of StorageUnlockEvent to filter transactions.
+"StorageUnlockEventInput" can be configured as a filter with a transaction event's `type`, `bytes_delta`, `fee_refund` and `pkg_path`.
+"""
+	bytes_delta: Int
+"""
+Transaction's event of type of StorageUnlockEvent to filter transactions.
+"StorageUnlockEventInput" can be configured as a filter with a transaction event's `type`, `bytes_delta`, `fee_refund` and `pkg_path`.
+"""
+	fee_refund: CoinInput
+"""
+Transaction's event of type of StorageUnlockEvent to filter transactions.
+"StorageUnlockEventInput" can be configured as a filter with a transaction event's `type`, `bytes_delta`, `fee_refund` and `pkg_path`.
+"""
+	pkg_path: String
+}
+
+"""
+The `String`scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.
+"""
 scalar String
 
-"""Subscriptions provide a way for clients to receive real-time updates about Transactions and Blocks based on specified filter criteria.
-Subscribers will only receive updates for events occurring after the subscription is established."""
+"""
+Subscriptions provide a way for clients to receive real-time updates about Transactions and Blocks based on specified filter criteria.
+Subscribers will only receive updates for events occurring after the subscription is established.
+"""
 type Subscription {
-"""Subscribes to real-time updates of Transactions that match the provided filter criteria.
+"""
+Subscribes to real-time updates of Transactions that match the provided filter criteria.
 This subscription starts immediately and only includes Transactions added to the blockchain after the subscription is active.
 
 This is useful for applications needing to track Transactions in real-time, such as wallets tracking incoming transactions
 or analytics platforms monitoring blockchain activity.
 
 Returns:
-- Transaction: Each received update is a Transaction object that matches the filter criteria."""
+- Transaction: Each received update is a Transaction object that matches the filter criteria.
+"""
 	transactions(
 		filter: TransactionFilter!
-	): Transaction!
-"""Subscribes to real-time updates of Blocks that match the provided filter criteria. Similar to the Transactions subscription,
+	): Transaction! @deprecated(reason: "Use `getTransactions` instead.")
+"""
+Subscribes to real-time updates of Blocks that match the provided filter criteria. Similar to the Transactions subscription,
 this subscription is active immediately upon creation and only includes Blocks added after the subscription begins.
 
 This subscription is ideal for services that need to be notified of new Blocks for processing or analysis, such as block explorers,
 data aggregators, or security monitoring tools.
 
 Returns:
-- Block: Each update consists of a Block object that satisfies the filter criteria, allowing subscribers to process or analyze new Blocks in real time."""
+- Block: Each update consists of a Block object that satisfies the filter criteria, allowing subscribers to process or analyze new Blocks in real time.
+"""
 	blocks(
 		filter: BlockFilter!
+	): Block! @deprecated(reason: "Use `getBlocks` instead.")
+"""
+Subscribes to real-time updates of Transactions that 
+match the provided filter criteria. This subscription starts immediately
+and only includes Transactions added to the blockchain after the subscription
+is active.
+
+This is useful for applications needing to track Transactions in real-time, 
+such as wallets tracking incoming transactions or analytics platforms 
+monitoring blockchain activity.
+
+Returns:
+- Transaction: Each received update is a Transaction object that matches 
+the where criteria.
+"""
+	getTransactions(
+		where: FilterTransaction!
+	): Transaction!
+"""
+Subscribes to real-time updates of Blocks that match the provided
+filter criteria. Similar to the Transactions subscription,
+this subscription is active immediately upon creation and only includes Blocks
+added after the subscription begins.
+
+This subscription is ideal for services that need to be notified of new Blocks
+for processing or analysis, such as block explorers, data aggregators, or security
+monitoring tools.
+
+Returns:
+- Block: Each update consists of a Block object that satisfies the filter criteria,
+allowing subscribers to process or analyze new Blocks in real time.
+"""
+	getBlocks(
+		where: FilterBlock!
 	): Block!
 }
 
-"""Field representing a point on time. It is following the RFC3339Nano format ("2006-01-02T15:04:05.999999999Z07:00")"""
+"""
+Field representing a point on time. It is following the RFC3339Nano format ("2006-01-02T15:04:05.999999999Z07:00")
+"""
 scalar Time
 
-"""Defines a transaction within a block, detailing its execution specifics and content."""
+"""
+Defines a transaction within a block, detailing its execution specifics and content.
+"""
 type Transaction {
-"""A sequential index representing the order of this Transaction within its Block. Unique within the context of its Block."""
+"""
+A sequential index representing the order of this Transaction within its Block. Unique within the context of its Block.
+"""
 	index: Int!
-"""Hash from Transaction content in base64 encoding."""
+"""
+Hash from Transaction content in base64 encoding.
+"""
 	hash: String!
-"""The success can determine whether the transaction succeeded or failed."""
+"""
+The success can determine whether the transaction succeeded or failed.
+"""
 	success: Boolean!
-"""The height of the Block in which this Transaction is included. Links the Transaction to its containing Block."""
+"""
+The height of the Block in which this Transaction is included. Links the Transaction to its containing Block.
+"""
 	block_height: Int!
-"""The declared amount of computational effort the sender is willing to pay for executing this Transaction."""
+"""
+The declared amount of computational effort the sender is willing to pay for executing this Transaction.
+"""
 	gas_wanted: Int!
-"""The actual amount of computational effort consumed to execute this Transaction. It could be less or equal to `gas_wanted`."""
+"""
+The actual amount of computational effort consumed to execute this Transaction. It could be less or equal to `gas_wanted`.
+"""
 	gas_used: Int!
-"""The payload of the Transaction in a raw format, typically containing the instructions and any data necessary for execution."""
+"""
+Fee includes the amount of coins paid in fees and the maximum
+gas to be used by the transaction.
+"""
+	gas_fee: Coin
+"""
+The payload of the Transaction in a raw format, typically containing the instructions and any data necessary for execution.
+"""
 	content_raw: String!
-"""The payload of a message shows the contents of the messages in a transaction.
-A message consists of `router`, `type`, and `value` (whose form depends on the `router` and `type`)."""
+"""
+The payload of a message shows the contents of the messages in a transaction.
+A message consists of `router`, `type`, and `value` (whose form depends on the `router` and `type`).
+"""
 	messages: [TransactionMessage]!
-"""`memo` are string information stored within a transaction.
+"""
+`memo` are string information stored within a transaction.
 `memo` can be utilized to find or distinguish transactions.
-For example, when trading a specific exchange, you would utilize the memo field of the transaction."""
+For example, when trading a specific exchange, you would utilize the memo field of the transaction.
+"""
 	memo: String!
-"""`response` is the processing result of the transaction.
-It has `log`, `info`, `error`, and `data`."""
+"""
+`response` is the processing result of the transaction.
+It has `log`, `info`, `error`, and `data`.
+"""
 	response: TransactionResponse!
 }
 
-"""`TransactionBankMessageInput` represents input parameters required when the message router is `bank`."""
+"""
+`TransactionBankMessageInput` represents input parameters required when the message router is `bank`.
+"""
 input TransactionBankMessageInput {
-"""`TransactionBankMessageInput` represents input parameters required when the message router is `bank`."""
+"""
+`TransactionBankMessageInput` represents input parameters required when the message router is `bank`.
+"""
 	send: BankMsgSendInput
 }
 
-"""Filters for querying Transactions within specified criteria related to their execution and placement within Blocks."""
+"""
+Filters for querying Transactions within specified criteria related to their execution and placement within Blocks.
+"""
 input TransactionFilter {
-"""Filters for querying Transactions within specified criteria related to their execution and placement within Blocks."""
+"""
+Filters for querying Transactions within specified criteria related to their execution and placement within Blocks.
+"""
 	from_block_height: Int
-"""Filters for querying Transactions within specified criteria related to their execution and placement within Blocks."""
+"""
+Filters for querying Transactions within specified criteria related to their execution and placement within Blocks.
+"""
 	to_block_height: Int
-"""Filters for querying Transactions within specified criteria related to their execution and placement within Blocks."""
+"""
+Filters for querying Transactions within specified criteria related to their execution and placement within Blocks.
+"""
 	from_index: Int
-"""Filters for querying Transactions within specified criteria related to their execution and placement within Blocks."""
+"""
+Filters for querying Transactions within specified criteria related to their execution and placement within Blocks.
+"""
 	to_index: Int
-"""Filters for querying Transactions within specified criteria related to their execution and placement within Blocks."""
+"""
+Filters for querying Transactions within specified criteria related to their execution and placement within Blocks.
+"""
 	from_gas_wanted: Int
-"""Filters for querying Transactions within specified criteria related to their execution and placement within Blocks."""
+"""
+Filters for querying Transactions within specified criteria related to their execution and placement within Blocks.
+"""
 	to_gas_wanted: Int
-"""Filters for querying Transactions within specified criteria related to their execution and placement within Blocks."""
+"""
+Filters for querying Transactions within specified criteria related to their execution and placement within Blocks.
+"""
 	from_gas_used: Int
-"""Filters for querying Transactions within specified criteria related to their execution and placement within Blocks."""
+"""
+Filters for querying Transactions within specified criteria related to their execution and placement within Blocks.
+"""
 	to_gas_used: Int
-"""Filters for querying Transactions within specified criteria related to their execution and placement within Blocks."""
+"""
+Filters for querying Transactions within specified criteria related to their execution and placement within Blocks.
+"""
 	hash: String
-"""Filters for querying Transactions within specified criteria related to their execution and placement within Blocks."""
-	message: TransactionMessageInput
-"""Filters for querying Transactions within specified criteria related to their execution and placement within Blocks."""
+"""
+Filters for querying Transactions within specified criteria related to their execution and placement within Blocks.
+"""
+	message: [TransactionMessageInput!]
+"""
+Filters for querying Transactions within specified criteria related to their execution and placement within Blocks.
+"""
 	memo: String
-"""Filters for querying Transactions within specified criteria related to their execution and placement within Blocks."""
+"""
+Filters for querying Transactions within specified criteria related to their execution and placement within Blocks.
+"""
 	success: Boolean
+"""
+Filters for querying Transactions within specified criteria related to their execution and placement within Blocks.
+"""
+	events: [EventInput!]
 }
 
 type TransactionMessage {
-"""The type of transaction message.
-The value of `typeUrl` can be `send`, `exec`, `add_package`, `run`."""
+"""
+The type of transaction message.
+The value of `typeUrl` can be `send`, `exec`, `add_package`, `run`.
+"""
 	typeUrl: String!
-"""The route of transaction message.
-The value of `route` can be `bank`, `vm`."""
+"""
+The route of transaction message.
+The value of `route` can be `bank`, `vm`.
+"""
 	route: String!
-"""MessageValue is the content of the transaction.
-`value` can be of type `BankMsgSend`, `MsgCall`, `MsgAddPackage`, `MsgRun`, `UnexpectedMessage`."""
+"""
+MessageValue is the content of the transaction.
+`value` can be of type `BankMsgSend`, `MsgCall`, `MsgAddPackage`, `MsgRun`, `UnexpectedMessage`.
+"""
 	value: MessageValue!
 }
 
-"""Transaction's message to filter Transactions.
-`TransactionMessageInput` can be configured as a filter with a transaction message's `router` and `type` and `parameters(bank / vm)`."""
+"""
+Transaction's message to filter Transactions.
+`TransactionMessageInput` can be configured as a filter with a transaction message's `router` and `type` and `parameters(bank / vm)`.
+"""
 input TransactionMessageInput {
-"""Transaction's message to filter Transactions.
-`TransactionMessageInput` can be configured as a filter with a transaction message's `router` and `type` and `parameters(bank / vm)`."""
+"""
+Transaction's message to filter Transactions.
+`TransactionMessageInput` can be configured as a filter with a transaction message's `router` and `type` and `parameters(bank / vm)`.
+"""
 	type_url: MessageType
-"""Transaction's message to filter Transactions.
-`TransactionMessageInput` can be configured as a filter with a transaction message's `router` and `type` and `parameters(bank / vm)`."""
+"""
+Transaction's message to filter Transactions.
+`TransactionMessageInput` can be configured as a filter with a transaction message's `router` and `type` and `parameters(bank / vm)`.
+"""
 	route: MessageRoute
-"""Transaction's message to filter Transactions.
-`TransactionMessageInput` can be configured as a filter with a transaction message's `router` and `type` and `parameters(bank / vm)`."""
+"""
+Transaction's message to filter Transactions.
+`TransactionMessageInput` can be configured as a filter with a transaction message's `router` and `type` and `parameters(bank / vm)`.
+"""
 	bank_param: TransactionBankMessageInput
-"""Transaction's message to filter Transactions.
-`TransactionMessageInput` can be configured as a filter with a transaction message's `router` and `type` and `parameters(bank / vm)`."""
+"""
+Transaction's message to filter Transactions.
+`TransactionMessageInput` can be configured as a filter with a transaction message's `router` and `type` and `parameters(bank / vm)`.
+"""
 	vm_param: TransactionVmMessageInput
 }
 
-"""`TransactionResponse` is the processing result of the transaction.
-It has `log`, `info`, `error`, and `data`."""
-type TransactionResponse {
-"""The log value associated with the Transaction execution, if any."""
-	log: String!
-"""The Info associated with the Transaction execution, if any."""
-	info: String!
-"""The error value associated with the Transaction execution, if any."""
-	error: String!
-"""The response data associated with the Transaction execution, if any."""
-	data: String!
+input TransactionOrder {
+	heightAndIndex: Order!
 }
 
-"""`TransactionVmMessageInput` represents input parameters required when the message router is `vm`."""
+"""
+`TransactionResponse` is the processing result of the transaction.
+It has `log`, `info`, `error`, and `data`.
+"""
+type TransactionResponse {
+"""
+The log value associated with the Transaction execution, if any.
+"""
+	log: String!
+"""
+The Info associated with the Transaction execution, if any.
+"""
+	info: String!
+"""
+The error value associated with the Transaction execution, if any.
+"""
+	error: String!
+"""
+The response data associated with the Transaction execution, if any.
+"""
+	data: String!
+"""
+The emitted events associated with the transaction execution, if any.
+"""
+	events: [Event]
+}
+
+"""
+`TransactionVmMessageInput` represents input parameters required when the message router is `vm`.
+"""
 input TransactionVmMessageInput {
-"""`TransactionVmMessageInput` represents input parameters required when the message router is `vm`."""
+"""
+`TransactionVmMessageInput` represents input parameters required when the message router is `vm`.
+"""
 	exec: MsgCallInput
-"""`TransactionVmMessageInput` represents input parameters required when the message router is `vm`."""
+"""
+`TransactionVmMessageInput` represents input parameters required when the message router is `vm`.
+"""
 	add_package: MsgAddPackageInput
-"""`TransactionVmMessageInput` represents input parameters required when the message router is `vm`."""
+"""
+`TransactionVmMessageInput` represents input parameters required when the message router is `vm`.
+"""
 	run: MsgRunInput
 }
 
+"""
+The `TxFee` has information about the fee used in the transaction and the maximum gas fee specified by the user.
+"""
 type TxFee {
-"""gas limit"""
+"""
+gas limit
+"""
 	gas_wanted: Int!
-"""gas fee details (<value><denomination>)"""
-	gas_fee: Int!
+"""
+The gas fee in the transaction.
+"""
+	gas_fee: Coin!
 }
 
-"""`UnexpectedMessage` is an Undefined Message, which is a message that decoding failed."""
+"""
+`UnexpectedMessage` is an Undefined Message, which is a message that decoding failed.
+"""
 type UnexpectedMessage {
 	raw: String!
+}
+
+"""
+`UnknownEvent` is an unknown event type.
+It has `value`.
+"""
+type UnknownEvent {
+"""
+`value` is a raw event string.
+"""
+	value: String!
 }
 
