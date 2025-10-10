@@ -158,7 +158,7 @@ func (s *indexerService) createGraphQLClient() error {
 	if err != nil {
 		return err
 	}
-	for _, t := range resp.Transactions {
+	for _, t := range resp.GetTransactions {
 		s.processCallInfo(t.Messages, t.Response, false)
 	}
 
@@ -191,7 +191,7 @@ func (s *indexerService) createGraphQLClient() error {
 				break
 			}
 			if msg.Data != nil {
-				s.processCallInfo(msg.Data.Transactions.Messages, msg.Data.Transactions.Response, true)
+				s.processCallInfo(msg.Data.GetTransactions.Messages, msg.Data.GetTransactions.Response, true)
 			}
 			if msg.Errors != nil {
 				fmt.Println("error:", msg.Errors)

@@ -1,6 +1,6 @@
 module github.com/gnoverse/dsocial/tools/indexer-service
 
-go 1.21
+go 1.24
 
 require (
 	connectrpc.com/connect v1.17.0
