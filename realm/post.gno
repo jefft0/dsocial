@@ -7,6 +7,7 @@ import (
 
 	"gno.land/p/moul/txlink/v0"
 	"gno.land/p/nt/bptree/v0"
+	"gno.land/p/nt/markdown/sanitize/v0"
 	"gno.land/p/nt/ufmt/v0"
 )
 
@@ -211,10 +212,10 @@ func (post *Post) RenderSummary() string {
 		if thread == nil {
 			return "reposted post does not exist"
 		}
-		return "Repost: " + post.GetSummary() + "\n\n" + thread.RenderSummary()
+		return "Repost: " + sanitize.InlineText(post.GetSummary()) + "\n\n" + thread.RenderSummary()
 	}
 	str := ""
-	str += post.GetSummary() + "\n"
+	str += sanitize.InlineText(post.GetSummary()) + "\n"
 	str += "\\- " + displayAddressMD(post.creator) + ","
 	str += " [" + post.createdAt.Format("2006-01-02 3:04pm MST") + "](" + post.GetURL() + ")"
 	str += " (" + strconv.Itoa(post.GetReactionCount(Gnod)) + " gnods)"
@@ -228,7 +229,7 @@ func (post *Post) RenderPost(indent string, levels int) string {
 		return "nil post"
 	}
 	str := ""
-	str += indentBody(indent, post.body) + "\n" // TODO: indent body lines.
+	str += indentBody(indent, sanitize.Block(post.body)) + "\n" // TODO: indent body lines.
 	str += indent + "\\- " + displayAddressMD(post.creator) + ", "
 	str += "[" + post.createdAt.Format("2006-01-02 3:04pm (MST)") + "](" + post.GetURL() + ")"
 	str += " - (" + strconv.Itoa(post.GetReactionCount(Gnod)) + " gnods) - "

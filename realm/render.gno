@@ -4,6 +4,7 @@ import (
 	"strconv"
 	"strings"
 
+	"gno.land/p/nt/markdown/sanitize/v0"
 	"gno.land/r/sys/users"
 )
 
@@ -37,7 +38,7 @@ func Render(path string) string {
 		userAddr := resolveAddr(path)
 		userPosts := getUserPosts(userAddr)
 		if userPosts == nil {
-			return "No posts by: " + path
+			return "No posts by: " + sanitize.InlineText(path)
 		}
 
 		return userPosts.RenderUserPosts(false)
@@ -45,7 +46,7 @@ func Render(path string) string {
 		userAddr := resolveAddr(parts[0])
 		userPosts := getUserPosts(userAddr)
 		if userPosts == nil {
-			return "No posts by: " + parts[0]
+			return "No posts by: " + sanitize.InlineText(parts[0])
 		}
 
 		if parts[1] == "home" {
@@ -61,11 +62,11 @@ func Render(path string) string {
 			// /r/berty/social:USER_NAME_OR_ADDR/THREAD_ID
 			pid, err := strconv.Atoi(parts[1])
 			if err != nil {
-				return "invalid thread id: " + parts[1]
+				return "invalid thread id: " + sanitize.InlineText(parts[1])
 			}
 			thread := userPosts.GetThread(PostID(pid))
 			if thread == nil {
-				return "thread does not exist with id: " + parts[1]
+				return "thread does not exist with id: " + sanitize.InlineText(parts[1])
 			}
 			return thread.RenderPost("", 5)
 		}
@@ -74,26 +75,26 @@ func Render(path string) string {
 		userAddr := resolveAddr(parts[0])
 		userPosts := getUserPosts(userAddr)
 		if userPosts == nil {
-			return "No posts by: " + parts[0]
+			return "No posts by: " + sanitize.InlineText(parts[0])
 		}
 		pid, err := strconv.Atoi(parts[1])
 		if err != nil {
-			return "invalid thread id: " + parts[1]
+			return "invalid thread id: " + sanitize.InlineText(parts[1])
 		}
 		thread := userPosts.GetThread(PostID(pid))
 		if thread == nil {
-			return "thread does not exist with id: " + parts[1]
+			return "thread does not exist with id: " + sanitize.InlineText(parts[1])
 		}
 		rid, err := strconv.Atoi(parts[2])
 		if err != nil {
-			return "invalid reply id: " + parts[2]
+			return "invalid reply id: " + sanitize.InlineText(parts[2])
 		}
 		reply := thread.GetReply(PostID(rid))
 		if reply == nil {
-			return "reply does not exist with id: " + parts[2]
+			return "reply does not exist with id: " + sanitize.InlineText(parts[2])
 		}
 		return reply.RenderInner()
 	} else {
-		return "unrecognized path: " + path
+		return "unrecognized path: " + sanitize.InlineText(path)
 	}
 }
