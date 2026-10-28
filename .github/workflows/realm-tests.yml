@@ -7,6 +7,50 @@ on:
     branches: [main]
 
 jobs:
+  realm-unit-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout dsocial
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.25.9"
+
+      - name: Checkout gnolang/gno
+        uses: actions/checkout@v4
+        with:
+          repository: gnolang/gno
+          ref: 02606904e30753f7775246624bfec96cb4749891
+          path: .gno
+
+      - name: Cache Go build
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-gno-${{ hashFiles('.gno/go.sum', '.gno/contribs/gnodev/go.sum') }}
+          restore-keys: ${{ runner.os }}-go-gno-
+
+      - name: Install gno
+        working-directory: .gno
+        run: go install ./gnovm/cmd/gno
+
+      # Resolve imports from the pinned Gno examples workspace.
+      - name: Prepare realm unit tests
+        run: |
+          mkdir -p .gno/examples/gno.land/r/berty
+          cp -R realm .gno/examples/gno.land/r/berty/social
+
+      - name: Run realm unit tests
+        working-directory: .gno/examples
+        env:
+          GNOROOT: ${{ github.workspace }}/.gno
+        run: gno test -v ./gno.land/r/berty/social
+
   realm-tests:
     runs-on: ubuntu-latest
 
