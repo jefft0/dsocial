@@ -239,6 +239,9 @@ func (post *Post) RenderPost(indent string, levels int) string {
 		str += " \\[[repost](" + post.GetRepostFormURL() + ")]"
 	}
 	str += "\n"
+	// TODO: This renders every reply, recursively for `levels` levels, with no pagination, and
+	// post bodies have no length limit. Should paginate them, and cap the body length.
+	// See renderThread in r/gnoland/boards2/v0/render_thread.gno .
 	if levels > 0 {
 		if post.replies.Size() > 0 {
 			post.replies.ReverseIterate("", "", func(key string, value interface{}) bool {
