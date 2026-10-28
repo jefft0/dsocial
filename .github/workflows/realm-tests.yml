@@ -12,22 +12,22 @@ jobs:
 
     steps:
       - name: Checkout dsocial
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7.0.1
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v7.0.0
         with:
           go-version: "1.25.9"
 
       - name: Checkout gnolang/gno
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7.0.1
         with:
           repository: gnolang/gno
-          ref: 02606904e30753f7775246624bfec96cb4749891
+          ref: 14fe3eb356c52dd325c9cc10fc77d248b3b88f32
           path: .gno
 
       - name: Cache Go build
-        uses: actions/cache@v4
+        uses: actions/cache@v6.1.0
         with:
           path: |
             ~/.cache/go-build
@@ -56,24 +56,24 @@ jobs:
 
     steps:
       - name: Checkout dsocial
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7.0.1
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v7.0.0
         with:
           go-version: "1.25.9"
 
       - name: Checkout gnolang/gno
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7.0.1
         with:
           repository: gnolang/gno
           # Pin to the gno version this realm was developed against.
           # Update this ref when bumping gno compatibility.
-          ref: 02606904e30753f7775246624bfec96cb4749891
+          ref: 14fe3eb356c52dd325c9cc10fc77d248b3b88f32
           path: .gno
 
       - name: Cache Go build
-        uses: actions/cache@v4
+        uses: actions/cache@v6.1.0
         with:
           path: |
             ~/.cache/go-build
