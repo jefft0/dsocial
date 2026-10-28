@@ -18,6 +18,9 @@ type UserAndPostID struct {
 // Return the "thread ID" of the new post.
 // (This is similar to boards.CreateThread, but no message title)
 func PostMessage(cur realm, body string) PostID {
+	if !cur.IsCurrent() {
+		panic("spoofed realm")
+	}
 	caller := cur.Previous().Address()
 	userPosts := getOrCreateUserPosts(caller, usernameOf(caller))
 	thread := userPosts.addThread(body)
@@ -31,6 +34,9 @@ func PostMessage(cur realm, body string) PostID {
 // Return the new post ID.
 // (This is similar to boards.CreateReply.)
 func PostReply(cur realm, userPostsAddr address, threadid, postid PostID, body string) PostID {
+	if !cur.IsCurrent() {
+		panic("spoofed realm")
+	}
 	caller := cur.Previous().Address()
 	userPosts := getUserPosts(userPostsAddr)
 	if userPosts == nil {
@@ -58,6 +64,9 @@ func PostReply(cur realm, userPostsAddr address, threadid, postid PostID, body s
 // Return the new post ID.
 // (This is similar to boards.CreateRepost.)
 func RepostThread(cur realm, userPostsAddr address, threadid PostID, comment string) PostID {
+	if !cur.IsCurrent() {
+		panic("spoofed realm")
+	}
 	caller := cur.Previous().Address()
 	if userPostsAddr == caller {
 		panic("Cannot repost a user's own message")
@@ -210,6 +219,9 @@ func GetJsonHomePosts(userPostsAddr address, startIndex int, endIndex int) strin
 
 // Update the caller to follow the user with followedAddr. See UserPosts.follow.
 func Follow(cur realm, followedAddr address) PostID {
+	if !cur.IsCurrent() {
+		panic("spoofed realm")
+	}
 	caller := cur.Previous().Address()
 	if followedAddr == caller {
 		panic("you can't follow yourself")
@@ -222,6 +234,9 @@ func Follow(cur realm, followedAddr address) PostID {
 
 // Update the caller to unfollow the user with followedAddr. See UserPosts.unfollow.
 func Unfollow(cur realm, followedAddr address) {
+	if !cur.IsCurrent() {
+		panic("spoofed realm")
+	}
 	caller := cur.Previous().Address()
 	userPosts := getUserPosts(caller)
 	if userPosts == nil {
@@ -239,6 +254,9 @@ func Unfollow(cur realm, followedAddr address) {
 // The caller must already be registered with /r/gnoland/users/v1 Register.
 // Return a boolean indicating whether the userAddr was added. See Post.addReaction.
 func AddReaction(cur realm, userPostsAddr address, threadid, postid PostID, reaction Reaction) bool {
+	if !cur.IsCurrent() {
+		panic("spoofed realm")
+	}
 	caller := cur.Previous().Address()
 	userPosts := getUserPosts(userPostsAddr)
 	if userPosts == nil {
@@ -266,6 +284,9 @@ func AddReaction(cur realm, userPostsAddr address, threadid, postid PostID, reac
 // The caller must already be registered with /r/gnoland/users/v1 Register.
 // Return a boolean indicating whether the userAddr was removed. See Post.removeReaction.
 func RemoveReaction(cur realm, userPostsAddr address, threadid, postid PostID, reaction Reaction) bool {
+	if !cur.IsCurrent() {
+		panic("spoofed realm")
+	}
 	caller := cur.Previous().Address()
 	userPosts := getUserPosts(userPostsAddr)
 	if userPosts == nil {
