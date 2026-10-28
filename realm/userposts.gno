@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"gno.land/p/moul/txlink"
+	"gno.land/p/moul/txlink/v0"
 	"gno.land/p/nt/bptree/v0"
 	"gno.land/p/nt/ufmt/v0"
 	"gno.land/r/sys/users"
@@ -50,8 +50,8 @@ func newUserPosts(url string, userAddr address) *UserPosts {
 
 func (userPosts *UserPosts) GetThread(pid PostID) *Post {
 	pidkey := postIDKey(pid)
-	postI, exists := userPosts.threads.Get(pidkey)
-	if !exists {
+	postI := userPosts.threads.Get(pidkey)
+	if postI == nil {
 		return nil
 	}
 	return postI.(*Post)

@@ -14,8 +14,8 @@ import (
 
 // Get the UserPosts for the user.
 func getUserPosts(userAddr address) *UserPosts {
-	userPosts, exists := gUserPostsByAddress.Get(userAddr.String())
-	if !exists {
+	userPosts := gUserPostsByAddress.Get(userAddr.String())
+	if userPosts == nil {
 		return nil
 	}
 
@@ -67,8 +67,8 @@ func reactionKey(reaction Reaction) string {
 // Otherwise, add the reaction key to reactions, set the value to an empty bptree.BPTree and return it.
 func getOrCreateReactionValue(reactions *bptree.BPTree, reaction Reaction) *bptree.BPTree {
 	key := reactionKey(reaction)
-	valueI, exists := reactions.Get(key)
-	if exists {
+	valueI := reactions.Get(key)
+	if valueI != nil {
 		return valueI.(*bptree.BPTree)
 	} else {
 		value := bptree.NewBPTree32()

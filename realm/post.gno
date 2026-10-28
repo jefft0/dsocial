@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"time"
 
-	"gno.land/p/moul/txlink"
+	"gno.land/p/moul/txlink/v0"
 	"gno.land/p/nt/bptree/v0"
 	"gno.land/p/nt/ufmt/v0"
 )
@@ -103,8 +103,8 @@ func (post *Post) AddRepostTo(creator address, comment string, dst *UserPosts) *
 
 func (post *Post) GetReply(pid PostID) *Post {
 	pidkey := postIDKey(pid)
-	replyI, ok := post.repliesAll.Get(pidkey)
-	if !ok {
+	replyI := post.repliesAll.Get(pidkey)
+	if replyI == nil {
 		return nil
 	} else {
 		return replyI.(*Post)
@@ -151,8 +151,8 @@ func (post *Post) RemoveReaction(userAddr address, reaction Reaction) bool {
 // Return the count of reactions for the reaction.
 func (post *Post) GetReactionCount(reaction Reaction) int {
 	key := reactionKey(reaction)
-	valueI, exists := post.reactions.Get(key)
-	if exists {
+	valueI := post.reactions.Get(key)
+	if valueI != nil {
 		return valueI.(*bptree.BPTree).Size()
 	} else {
 		return 0
