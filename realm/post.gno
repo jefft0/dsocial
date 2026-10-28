@@ -71,7 +71,7 @@ func (post *Post) GetPostID() PostID {
 	return post.id
 }
 
-func (post *Post) AddReply(creator address, body string) *Post {
+func (post *Post) addReply(creator address, body string) *Post {
 	userPosts := post.userPosts
 	pid := userPosts.incGetPostID()
 	pidkey := postIDKey(pid)
@@ -86,7 +86,7 @@ func (post *Post) AddReply(creator address, body string) *Post {
 	return reply
 }
 
-func (post *Post) AddRepostTo(creator address, comment string, dst *UserPosts) *Post {
+func (post *Post) addRepostTo(creator address, comment string, dst *UserPosts) *Post {
 	if !post.IsThread() {
 		panic("cannot repost non-thread post")
 	}
@@ -116,7 +116,7 @@ func (post *Post) GetReply(pid PostID) *Post {
 // If userAddr is already added, do nothing.
 // If the userAddr is the post's creator, do nothing. (Don't react to one's own posts.)
 // Return a boolean indicating whether the userAddr was added (false if it was already added).
-func (post *Post) AddReaction(userAddr address, reaction Reaction) bool {
+func (post *Post) addReaction(userAddr address, reaction Reaction) bool {
 	validateReaction(reaction)
 
 	if userAddr == post.creator {
@@ -136,7 +136,7 @@ func (post *Post) AddReaction(userAddr address, reaction Reaction) bool {
 // Remove the userAddr from the posts.reactions for reaction.
 // If userAddr is already removed, do nothing.
 // Return a boolean indicating whether the userAddr was found and removed.
-func (post *Post) RemoveReaction(userAddr address, reaction Reaction) bool {
+func (post *Post) removeReaction(userAddr address, reaction Reaction) bool {
 	validateReaction(reaction)
 
 	if !post.reactions.Has(reactionKey(reaction)) {

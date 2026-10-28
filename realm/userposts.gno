@@ -58,7 +58,7 @@ func (userPosts *UserPosts) GetThread(pid PostID) *Post {
 }
 
 // Add a new top-level thread to the userPosts. Return the new Post.
-func (userPosts *UserPosts) AddThread(body string) *Post {
+func (userPosts *UserPosts) addThread(body string) *Post {
 	pid := userPosts.incGetPostID()
 	pidkey := postIDKey(pid)
 	thread := newPost(userPosts, pid, userPosts.userAddr, body, pid, 0, "")
@@ -74,7 +74,7 @@ func (userPosts *UserPosts) AddThread(body string) *Post {
 // If there is no UserPosts for followedAddr, then do nothing and return 0. (We don't expect
 // this because this is usually called by clicking on the display page of followedAddr.)
 // Return the value of startedPostsCtr in the added FollowingInfo.
-func (userPosts *UserPosts) Follow(followedAddr address) PostID {
+func (userPosts *UserPosts) follow(followedAddr address) PostID {
 	if userPosts.following.Has(followedAddr.String()) {
 		// Already following.
 		return PostID(0)
@@ -96,7 +96,7 @@ func (userPosts *UserPosts) Follow(followedAddr address) PostID {
 // Remove followedAddr from following.
 // If there is a UserPosts for followedAddr, then remove this user from its followers.
 // If there is no UserPosts for followedAddr, then do nothing. (We don't expect this usually.)
-func (userPosts *UserPosts) Unfollow(followedAddr address) {
+func (userPosts *UserPosts) unfollow(followedAddr address) {
 	userPosts.following.Remove(followedAddr.String())
 
 	followedUserPosts := getUserPosts(followedAddr)
