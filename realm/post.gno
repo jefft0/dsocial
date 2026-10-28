@@ -294,6 +294,10 @@ func (post *Post) MarshalJSON() ([]byte, error) {
 	if post.repostUser != "" {
 		json.WriteString(ufmt.Sprintf(`, "repost_user": %s`, strconv.Quote(post.repostUser.String())))
 	}
+	// TODO: strconv.Quote is not a JSON encoder. For control characters it emits Go escapes
+	// like \x01, \a and \v which are invalid JSON, so JSON.parse rejects the whole response.
+	// Since anyone can reply to any thread, one such reply breaks that thread in the mobile
+	// app. This goes away when we switch to vm/qeval_json.
 	json.WriteString(ufmt.Sprintf(`, "body": %s}`, strconv.Quote(post.body)))
 
 	return json.Bytes(), nil
