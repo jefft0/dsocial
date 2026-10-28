@@ -171,7 +171,8 @@ func (post *Post) GetSummary() string {
 }
 
 func (post *Post) GetURL() string {
-	if post.IsThread() {
+	// Not IsThread(), which is false for a repost even though it is top-level.
+	if post.threadID == post.id {
 		return post.userPosts.GetURLFromThreadAndReplyID(
 			post.id, 0)
 	} else {
