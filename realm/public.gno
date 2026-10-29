@@ -18,9 +18,12 @@ type UserAndPostID struct {
 // Return the "thread ID" of the new post.
 // (This is similar to boards.CreateThread, but no message title)
 func PostMessage(cur realm, body string) PostID {
+	if !cur.IsCurrent() {
+		panic("spoofed realm")
+	}
 	caller := cur.Previous().Address()
 	userPosts := getOrCreateUserPosts(caller, usernameOf(caller))
-	thread := userPosts.AddThread(body)
+	thread := userPosts.addThread(body)
 	return thread.id
 }
 
@@ -31,6 +34,9 @@ func PostMessage(cur realm, body string) PostID {
 // Return the new post ID.
 // (This is similar to boards.CreateReply.)
 func PostReply(cur realm, userPostsAddr address, threadid, postid PostID, body string) PostID {
+	if !cur.IsCurrent() {
+		panic("spoofed realm")
+	}
 	caller := cur.Previous().Address()
 	userPosts := getUserPosts(userPostsAddr)
 	if userPosts == nil {
@@ -41,14 +47,14 @@ func PostReply(cur realm, userPostsAddr address, threadid, postid PostID, body s
 		panic("threadid in user posts does not exist")
 	}
 	if postid == threadid {
-		reply := thread.AddReply(caller, body)
+		reply := thread.addReply(caller, body)
 		return reply.id
 	} else {
 		post := thread.GetReply(postid)
 		if post == nil {
 			panic("postid does not exist")
 		}
-		reply := post.AddReply(caller, body)
+		reply := post.addReply(caller, body)
 		return reply.id
 	}
 }
@@ -58,6 +64,9 @@ func PostReply(cur realm, userPostsAddr address, threadid, postid PostID, body s
 // Return the new post ID.
 // (This is similar to boards.CreateRepost.)
 func RepostThread(cur realm, userPostsAddr address, threadid PostID, comment string) PostID {
+	if !cur.IsCurrent() {
+		panic("spoofed realm")
+	}
 	caller := cur.Previous().Address()
 	if userPostsAddr == caller {
 		panic("Cannot repost a user's own message")
@@ -73,7 +82,7 @@ func RepostThread(cur realm, userPostsAddr address, threadid PostID, comment str
 	if thread == nil {
 		panic("threadid in user posts does not exist")
 	}
-	repost := thread.AddRepostTo(caller, comment, dstUserPosts)
+	repost := thread.addRepostTo(caller, comment, dstUserPosts)
 	return repost.id
 }
 
@@ -119,7 +128,7 @@ func GetJsonTopPostsByID(addrAndIDs []UserAndPostID) string {
 // If threadID is X and replyID is 0, then return the posts (without replies) in that thread. (Like render args "user/2".)
 // If threadID is X and replyID is Y, then return the posts in the thread starting with replyID. (Like render args "user/2/5".)
 // The response includes reposts by this user (only if threadID is 0), but not messages of other
-// users that are being followed. (See GetHomePosts.) The response is a JSON string.
+// users that are being followed. (See GetJsonHomePosts.) The response is a JSON string.
 func GetThreadPosts(userPostsAddr address, threadID int, replyID int, startIndex int, endIndex int) string {
 	userPosts := getUserPosts(userPostsAddr)
 	if userPosts == nil {
@@ -160,22 +169,21 @@ func RefreshHomePosts(_ realm, userPostsAddr address) int {
 	return userPosts.homePosts.Size()
 }
 
-// Get the number of posts which GetHomePosts or GetJsonHomePosts will return.
+// Get the number of posts which GetJsonHomePosts will return.
 // The result is something like "(12 int)".
 // This returns the current count of the home posts (without need to pay gas). To include the
 // latest followed posts, call RefreshHomePosts.
 func GetHomePostsCount(userPostsAddr address) int {
-	return GetHomePosts(userPostsAddr).Size()
+	return getHomePosts(userPostsAddr).Size()
 }
 
 // Get home posts for a user, which are the user's top-level posts plus all posts of all
 // users being followed.
 // The response is a map of postID -> *Post. The bptree.BPTree sorts by the post ID which is
 // unique for every post and increases in time.
-// If you just want the total count, use GetHomePostsCount.
-// This returns the current state of the home posts (without need to pay gas). To include the
-// latest followed posts, call RefreshHomePosts.
-func GetHomePosts(userPostsAddr address) *bptree.BPTree {
+// This must not be exported. Another realm holding this pointer could mutate the tree (and
+// the posts in it) with this realm's authority.
+func getHomePosts(userPostsAddr address) *bptree.BPTree {
 	userPosts := getUserPosts(userPostsAddr)
 	if userPosts == nil {
 		panic("posts for userPostsAddr do not exist")
@@ -183,7 +191,7 @@ func GetHomePosts(userPostsAddr address) *bptree.BPTree {
 	return &userPosts.homePosts
 }
 
-// Get home posts for a user (using GetHomePosts), which are the user's top-level posts plus all
+// Get home posts for a user, which are the user's top-level posts plus all
 // posts of all users being followed.
 // Limit the response to posts from startIndex up to (not including) endIndex within the home posts.
 // If you just want the total count, use GetHomePostsCount.
@@ -191,7 +199,7 @@ func GetHomePosts(userPostsAddr address) *bptree.BPTree {
 // This returns the current state of the home posts (without need to pay gas). To include the
 // latest posts, call RefreshHomePosts.
 func GetJsonHomePosts(userPostsAddr address, startIndex int, endIndex int) string {
-	allPosts := GetHomePosts(userPostsAddr)
+	allPosts := getHomePosts(userPostsAddr)
 	postsJson := ""
 	for i := startIndex; i < endIndex && i < allPosts.Size(); i++ {
 		_, postI := allPosts.GetByIndex(i)
@@ -209,8 +217,11 @@ func GetJsonHomePosts(userPostsAddr address, startIndex int, endIndex int) strin
 	return ufmt.Sprintf("{\"n_posts\": %d, \"posts\": [\n  %s]}", allPosts.Size(), postsJson)
 }
 
-// Update the caller to follow the user with followedAddr. See UserPosts.Follow.
+// Update the caller to follow the user with followedAddr. See UserPosts.follow.
 func Follow(cur realm, followedAddr address) PostID {
+	if !cur.IsCurrent() {
+		panic("spoofed realm")
+	}
 	caller := cur.Previous().Address()
 	if followedAddr == caller {
 		panic("you can't follow yourself")
@@ -218,11 +229,14 @@ func Follow(cur realm, followedAddr address) PostID {
 
 	// A user can follow someone before doing any posts, so create the UserPosts if needed.
 	userPosts := getOrCreateUserPosts(caller, usernameOf(caller))
-	return userPosts.Follow(followedAddr)
+	return userPosts.follow(followedAddr)
 }
 
-// Update the caller to unfollow the user with followedAddr. See UserPosts.Unfollow.
+// Update the caller to unfollow the user with followedAddr. See UserPosts.unfollow.
 func Unfollow(cur realm, followedAddr address) {
+	if !cur.IsCurrent() {
+		panic("spoofed realm")
+	}
 	caller := cur.Previous().Address()
 	userPosts := getUserPosts(caller)
 	if userPosts == nil {
@@ -230,7 +244,7 @@ func Unfollow(cur realm, followedAddr address) {
 		return
 	}
 
-	userPosts.Unfollow(followedAddr)
+	userPosts.unfollow(followedAddr)
 }
 
 // Add the reaction by the caller to the post of userPostsAddr, where threadid is the ID
@@ -238,8 +252,11 @@ func Unfollow(cur realm, followedAddr address) {
 // to a top-level post for the threadid, otherwise add the reaction to the postid "sub reply".
 // (This function's arguments are similar to PostReply.)
 // The caller must already be registered with /r/gnoland/users/v1 Register.
-// Return a boolean indicating whether the userAddr was added. See Post.AddReaction.
+// Return a boolean indicating whether the userAddr was added. See Post.addReaction.
 func AddReaction(cur realm, userPostsAddr address, threadid, postid PostID, reaction Reaction) bool {
+	if !cur.IsCurrent() {
+		panic("spoofed realm")
+	}
 	caller := cur.Previous().Address()
 	userPosts := getUserPosts(userPostsAddr)
 	if userPosts == nil {
@@ -250,13 +267,13 @@ func AddReaction(cur realm, userPostsAddr address, threadid, postid PostID, reac
 		panic("threadid in user posts does not exist")
 	}
 	if postid == threadid {
-		return thread.AddReaction(caller, reaction)
+		return thread.addReaction(caller, reaction)
 	} else {
 		post := thread.GetReply(postid)
 		if post == nil {
 			panic("postid does not exist")
 		}
-		return post.AddReaction(caller, reaction)
+		return post.addReaction(caller, reaction)
 	}
 }
 
@@ -265,8 +282,11 @@ func AddReaction(cur realm, userPostsAddr address, threadid, postid PostID, reac
 // from a top-level post for the threadid, otherwise remove the reaction from the postid "sub reply".
 // (This function's arguments are similar to PostReply.)
 // The caller must already be registered with /r/gnoland/users/v1 Register.
-// Return a boolean indicating whether the userAddr was removed. See Post.RemoveReaction.
+// Return a boolean indicating whether the userAddr was removed. See Post.removeReaction.
 func RemoveReaction(cur realm, userPostsAddr address, threadid, postid PostID, reaction Reaction) bool {
+	if !cur.IsCurrent() {
+		panic("spoofed realm")
+	}
 	caller := cur.Previous().Address()
 	userPosts := getUserPosts(userPostsAddr)
 	if userPosts == nil {
@@ -277,13 +297,13 @@ func RemoveReaction(cur realm, userPostsAddr address, threadid, postid PostID, r
 		panic("threadid in user posts does not exist")
 	}
 	if postid == threadid {
-		return thread.RemoveReaction(caller, reaction)
+		return thread.removeReaction(caller, reaction)
 	} else {
 		post := thread.GetReply(postid)
 		if post == nil {
 			panic("postid does not exist")
 		}
-		return post.RemoveReaction(caller, reaction)
+		return post.removeReaction(caller, reaction)
 	}
 }
 

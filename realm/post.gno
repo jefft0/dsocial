@@ -7,6 +7,7 @@ import (
 
 	"gno.land/p/moul/txlink/v0"
 	"gno.land/p/nt/bptree/v0"
+	"gno.land/p/nt/markdown/sanitize/v0"
 	"gno.land/p/nt/ufmt/v0"
 )
 
@@ -71,7 +72,7 @@ func (post *Post) GetPostID() PostID {
 	return post.id
 }
 
-func (post *Post) AddReply(creator address, body string) *Post {
+func (post *Post) addReply(creator address, body string) *Post {
 	userPosts := post.userPosts
 	pid := userPosts.incGetPostID()
 	pidkey := postIDKey(pid)
@@ -86,7 +87,7 @@ func (post *Post) AddReply(creator address, body string) *Post {
 	return reply
 }
 
-func (post *Post) AddRepostTo(creator address, comment string, dst *UserPosts) *Post {
+func (post *Post) addRepostTo(creator address, comment string, dst *UserPosts) *Post {
 	if !post.IsThread() {
 		panic("cannot repost non-thread post")
 	}
@@ -116,7 +117,7 @@ func (post *Post) GetReply(pid PostID) *Post {
 // If userAddr is already added, do nothing.
 // If the userAddr is the post's creator, do nothing. (Don't react to one's own posts.)
 // Return a boolean indicating whether the userAddr was added (false if it was already added).
-func (post *Post) AddReaction(userAddr address, reaction Reaction) bool {
+func (post *Post) addReaction(userAddr address, reaction Reaction) bool {
 	validateReaction(reaction)
 
 	if userAddr == post.creator {
@@ -136,7 +137,7 @@ func (post *Post) AddReaction(userAddr address, reaction Reaction) bool {
 // Remove the userAddr from the posts.reactions for reaction.
 // If userAddr is already removed, do nothing.
 // Return a boolean indicating whether the userAddr was found and removed.
-func (post *Post) RemoveReaction(userAddr address, reaction Reaction) bool {
+func (post *Post) removeReaction(userAddr address, reaction Reaction) bool {
 	validateReaction(reaction)
 
 	if !post.reactions.Has(reactionKey(reaction)) {
@@ -170,7 +171,8 @@ func (post *Post) GetSummary() string {
 }
 
 func (post *Post) GetURL() string {
-	if post.IsThread() {
+	// Not IsThread(), which is false for a repost even though it is top-level.
+	if post.threadID == post.id {
 		return post.userPosts.GetURLFromThreadAndReplyID(
 			post.id, 0)
 	} else {
@@ -211,10 +213,10 @@ func (post *Post) RenderSummary() string {
 		if thread == nil {
 			return "reposted post does not exist"
 		}
-		return "Repost: " + post.GetSummary() + "\n\n" + thread.RenderSummary()
+		return "Repost: " + sanitize.InlineText(post.GetSummary()) + "\n\n" + thread.RenderSummary()
 	}
 	str := ""
-	str += post.GetSummary() + "\n"
+	str += sanitize.InlineText(post.GetSummary()) + "\n"
 	str += "\\- " + displayAddressMD(post.creator) + ","
 	str += " [" + post.createdAt.Format("2006-01-02 3:04pm MST") + "](" + post.GetURL() + ")"
 	str += " (" + strconv.Itoa(post.GetReactionCount(Gnod)) + " gnods)"
@@ -228,7 +230,7 @@ func (post *Post) RenderPost(indent string, levels int) string {
 		return "nil post"
 	}
 	str := ""
-	str += indentBody(indent, post.body) + "\n" // TODO: indent body lines.
+	str += indentBody(indent, sanitize.Block(post.body)) + "\n" // TODO: indent body lines.
 	str += indent + "\\- " + displayAddressMD(post.creator) + ", "
 	str += "[" + post.createdAt.Format("2006-01-02 3:04pm (MST)") + "](" + post.GetURL() + ")"
 	str += " - (" + strconv.Itoa(post.GetReactionCount(Gnod)) + " gnods) - "
@@ -238,6 +240,9 @@ func (post *Post) RenderPost(indent string, levels int) string {
 		str += " \\[[repost](" + post.GetRepostFormURL() + ")]"
 	}
 	str += "\n"
+	// TODO: This renders every reply, recursively for `levels` levels, with no pagination, and
+	// post bodies have no length limit. Should paginate them, and cap the body length.
+	// See renderThread in r/gnoland/boards2/v0/render_thread.gno .
 	if levels > 0 {
 		if post.replies.Size() > 0 {
 			post.replies.ReverseIterate("", "", func(key string, value interface{}) bool {
@@ -294,6 +299,10 @@ func (post *Post) MarshalJSON() ([]byte, error) {
 	if post.repostUser != "" {
 		json.WriteString(ufmt.Sprintf(`, "repost_user": %s`, strconv.Quote(post.repostUser.String())))
 	}
+	// TODO: strconv.Quote is not a JSON encoder. For control characters it emits Go escapes
+	// like \x01, \a and \v which are invalid JSON, so JSON.parse rejects the whole response.
+	// Since anyone can reply to any thread, one such reply breaks that thread in the mobile
+	// app. This goes away when we switch to vm/qeval_json.
 	json.WriteString(ufmt.Sprintf(`, "body": %s}`, strconv.Quote(post.body)))
 
 	return json.Bytes(), nil
