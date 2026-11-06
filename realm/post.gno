@@ -14,7 +14,7 @@ import (
 //----------------------------------------
 // Post
 
-// NOTE: a PostID is relative to the userPosts.
+// NOTE: a PostID is global.
 type PostID uint64
 
 func (pid PostID) String() string {
