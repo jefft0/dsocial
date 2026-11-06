@@ -37,6 +37,7 @@ type Post struct {
 	id         PostID
 	creator    address
 	body       string
+	hashtags   []string
 	replies    bptree.BPTree  // PostID -> *Post
 	repliesAll bptree.BPTree  // PostID -> *Post (all replies, for top-level posts)
 	reposts    bptree.BPTree  // UserPosts user address -> PostID
@@ -53,6 +54,7 @@ func newPost(userPosts *UserPosts, id PostID, creator address, body string, thre
 		id:         id,
 		creator:    creator,
 		body:       body,
+		hashtags:   parseHashtags(body),
 		replies:    bptree.BPTree{},
 		repliesAll: bptree.BPTree{},
 		reposts:    bptree.BPTree{},
@@ -84,6 +86,7 @@ func (post *Post) addReply(creator address, body string) *Post {
 		thread := userPosts.GetThread(post.threadID)
 		thread.repliesAll.Set(pidkey, reply)
 	}
+	addPostToHashtags(reply)
 	return reply
 }
 
@@ -99,6 +102,7 @@ func (post *Post) addRepostTo(creator address, comment string, dst *UserPosts) *
 	// Also add to the home posts.
 	dst.homePosts.Set(pidkey, repost)
 	post.reposts.Set(creator.String(), pid)
+	addPostToHashtags(repost)
 	return repost
 }
 

@@ -3,6 +3,7 @@ package social
 import (
 	"strconv"
 	"strings"
+	"unicode"
 
 	"gno.land/p/nt/bptree/v0"
 	"gno.land/p/nt/ufmt/v0"
@@ -121,6 +122,65 @@ func summaryOf(str string, length int) string {
 		line = line + "..."
 	}
 	return line
+}
+
+// Return the unique hashtags in body, lowercase and without the '#', in order of first
+// appearance. A hashtag is a '#' followed by letters (with combining marks), digits or '_', with
+// at least one letter (so "#1" is not a hashtag). The '#' must be at the start of the body or
+// follow a character which is not one of these or '&', '/' or '#' (to skip "a#b", "&#39;",
+// "/#anchor" and "##a").
+// Return nil if there are no hashtags.
+func parseHashtags(body string) []string {
+	var hashtags []string
+	start := -1 // The byte index after the '#' of the hashtag being scanned, or -1.
+	prev := rune(0)
+	for i, r := range body {
+		if start >= 0 && !isHashtagRune(r) {
+			hashtags = addHashtag(hashtags, body[start:i])
+			start = -1
+		}
+		if r == '#' && !isHashtagRune(prev) && !strings.ContainsRune("&/#", prev) {
+			start = i + 1
+		}
+		prev = r
+	}
+	if start >= 0 {
+		hashtags = addHashtag(hashtags, body[start:])
+	}
+	return hashtags
+}
+
+func isHashtagRune(r rune) bool {
+	return unicode.IsLetter(r) || unicode.IsMark(r) || unicode.IsDigit(r) || r == '_'
+}
+
+// If tag has a letter, then append it in lowercase to hashtags if not already there.
+func addHashtag(hashtags []string, tag string) []string {
+	if strings.IndexFunc(tag, unicode.IsLetter) < 0 {
+		return hashtags
+	}
+	tag = strings.ToLower(tag)
+	for _, hashtag := range hashtags {
+		if hashtag == tag {
+			return hashtags
+		}
+	}
+	return append(hashtags, tag)
+}
+
+// Add post to gPostsByHashtag under each of its hashtags.
+func addPostToHashtags(post *Post) {
+	for _, hashtag := range post.hashtags {
+		postsI := gPostsByHashtag.Get(hashtag)
+		var posts *bptree.BPTree
+		if postsI == nil {
+			posts = bptree.NewBPTree32()
+			gPostsByHashtag.Set(hashtag, posts)
+		} else {
+			posts = postsI.(*bptree.BPTree)
+		}
+		posts.Set(postIDKey(post.id), post)
+	}
 }
 
 func displayAddressMD(addr address) string {
