@@ -170,8 +170,21 @@ func validateReaction(reaction Reaction) {
 	}
 }
 
+// The maximum length in bytes of a post summary, including a trailing "...".
+const summaryLength = 80
+
 func (post *Post) GetSummary() string {
-	return summaryOf(post.body, 80)
+	return summaryOf(post.body, summaryLength)
+}
+
+// Return the summary (see GetSummary) as escaped markdown, with each hashtag linked to its page.
+func (post *Post) summaryMD() string {
+	n, more := summaryLen(post.body, summaryLength)
+	str := linkHashtags(post.body, n, sanitize.InlineText)
+	if more {
+		str += sanitize.InlineText("...")
+	}
+	return str
 }
 
 func (post *Post) GetURL() string {
@@ -217,10 +230,10 @@ func (post *Post) RenderSummary() string {
 		if thread == nil {
 			return "reposted post does not exist"
 		}
-		return "Repost: " + sanitize.InlineText(post.GetSummary()) + "\n\n" + thread.RenderSummary()
+		return "Repost: " + post.summaryMD() + "\n\n" + thread.RenderSummary()
 	}
 	str := ""
-	str += sanitize.InlineText(post.GetSummary()) + "\n"
+	str += post.summaryMD() + "\n"
 	str += "\\- " + displayAddressMD(post.creator) + ","
 	str += " [" + post.createdAt.Format("2006-01-02 3:04pm MST") + "](" + post.GetURL() + ")"
 	str += " (" + strconv.Itoa(post.GetReactionCount(Gnod)) + " gnods)"
@@ -234,7 +247,7 @@ func (post *Post) RenderPost(indent string, levels int) string {
 		return "nil post"
 	}
 	str := ""
-	str += indentBody(indent, sanitize.Block(post.body)) + "\n" // TODO: indent body lines.
+	str += indentBody(indent, sanitize.Block(linkHashtags(post.body, len(post.body), nil))) + "\n" // TODO: indent body lines.
 	str += indent + "\\- " + displayAddressMD(post.creator) + ", "
 	str += "[" + post.createdAt.Format("2006-01-02 3:04pm (MST)") + "](" + post.GetURL() + ")"
 	str += " - (" + strconv.Itoa(post.GetReactionCount(Gnod)) + " gnods) - "

@@ -74,6 +74,66 @@ func TestParseHashtags(t *testing.T) {
 	}
 }
 
+func TestLinkHashtags(t *testing.T) {
+	tag := gRealmPath + ":_tag/"
+	tests := []struct {
+		body string
+		want string
+	}{
+		{"", ""},
+		{"no tags here", "no tags here"},
+		{"#Gno", "[#Gno](" + tag + "gno)"},
+		{"Hi #gno, #1 and a#b #日本!", "Hi [#gno](" + tag + "gno), #1 and a#b [#日本](" + tag + "日本)!"},
+		{"line1\n#next_line end", "line1\n[#next_line](" + tag + "next_line) end"},
+	}
+	for _, tc := range tests {
+		if got := linkHashtags(tc.body, len(tc.body), nil); got != tc.want {
+			t.Fatalf("linkHashtags(%q) = %q, want %q", tc.body, got, tc.want)
+		}
+	}
+
+	// sanitize.Block in RenderPost keeps the link.
+	userPosts := newUserPosts("/r/berty/social:alice", address("alice"))
+	thread := userPosts.addThread("#Hello there")
+	if out := thread.RenderPost("", 0); !strings.Contains(out, "[#Hello]("+tag+"hello) there") {
+		t.Fatalf("RenderPost does not link the hashtag:\n%s", out)
+	}
+}
+
+func TestSummary(t *testing.T) {
+	// Don't cut a multi-byte character.
+	if got, want := summaryOf(strings.Repeat("a", 76)+"日本", 80), strings.Repeat("a", 76)+"..."; got != want {
+		t.Fatalf("summaryOf = %q, want %q", got, want)
+	}
+
+	tag := gRealmPath + ":_tag/"
+	a70 := strings.Repeat("a", 70)
+	tests := []struct {
+		body string
+		want string
+	}{
+		{"Hi #gno, a_b *c*", "Hi [\\#gno](" + tag + "gno), a\\_b \\*c\\*"},
+		// The hashtag on the second line is not in the summary.
+		{"#Gno\nmore #line", "[\\#Gno](" + tag + "gno)\\.\\.\\."},
+		// The cut at 77 bytes is right after "#gnoxx", which ends there, so link it.
+		{a70 + " #gnoxx rocks", a70 + " [\\#gnoxx](" + tag + "gnoxx)\\.\\.\\."},
+		// The cut is in "#gnoland", so don't link it to "gnola".
+		{a70 + " #gnoland rocks", a70 + " \\#gnola\\.\\.\\."},
+		// The cut is between the characters of "#日本", so don't link it to "日".
+		{a70 + "aa #日本 rocks", a70 + "aa \\#日\\.\\.\\."},
+	}
+	userPosts := newUserPosts("/r/berty/social:alice", address("alice"))
+	for _, tc := range tests {
+		thread := userPosts.addThread(tc.body)
+		if got := thread.summaryMD(); got != tc.want {
+			t.Fatalf("summaryMD of %q = %q, want %q", tc.body, got, tc.want)
+		}
+		if out := thread.RenderSummary(); !strings.HasPrefix(out, tc.want+"\n") {
+			t.Fatalf("RenderSummary of %q does not start with the summary:\n%s", tc.body, out)
+		}
+	}
+}
+
 func TestPostsByHashtag(t *testing.T) {
 	alice := newUserPosts("/r/berty/social:alice", address("alice"))
 	bob := newUserPosts("/r/berty/social:bob", address("bob"))
