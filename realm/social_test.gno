@@ -1,6 +1,7 @@
 package social
 
 import (
+	"strings"
 	"testing"
 
 	"gno.land/p/nt/bptree/v0"
@@ -102,6 +103,35 @@ func TestPostsByHashtag(t *testing.T) {
 	if gPostsByHashtag.Get("Topic") != nil || gPostsByHashtag.Get("missing") != nil {
 		t.Fatal("unexpected posts for a hashtag")
 	}
+}
+
+func TestRenderHashtagPosts(t *testing.T) {
+	carol := newUserPosts("/r/berty/social:carol", address("carol"))
+	// One more than a page, so that the oldest post is on page 2.
+	for i := 1; i <= hashtagPageSize+1; i++ {
+		carol.addThread("Post " + padZero(uint64(i), 2) + " #PageTest")
+	}
+
+	checkRender := func(path string, want []string, notWant []string) {
+		out := Render(path)
+		for _, s := range want {
+			if !strings.Contains(out, s) {
+				t.Fatalf("Render(%q) does not contain %q:\n%s", path, s, out)
+			}
+		}
+		for _, s := range notWant {
+			if strings.Contains(out, s) {
+				t.Fatalf("Render(%q) contains %q:\n%s", path, s, out)
+			}
+		}
+	}
+	// Page 1 is newest first, and links to page 2.
+	checkRender("_tag/pagetest", []string{"Posts with #pagetest", "Post 21", "Post 02", "?page=2"}, []string{"Post 01"})
+	checkRender("_tag/PageTest", []string{"Post 21"}, nil)
+	checkRender("_tag/pagetest?page=2", []string{"Post 01"}, []string{"Post 02"})
+	// "?size=" is ignored.
+	checkRender("_tag/pagetest?size=100", []string{"Post 02"}, []string{"Post 01"})
+	checkRender("_tag/missing", []string{"No posts with hashtag: missing"}, nil)
 }
 
 func TestReactionLookups(t *testing.T) {
